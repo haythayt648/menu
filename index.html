@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منيو نبضة كوفي</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { background: #121212; color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 120px; }
+        .header { background: #1e1e1e; padding: 15px; border-bottom: 2px solid #d35400; text-align: center; position: sticky; top: 0; z-index: 100; }
+        .logo-text { font-size: 1.8em; font-weight: bold; color: #d35400; margin: 0; }
+        
+        /* Masa Seçim Alanı */
+        .masa-container { background: #d35400; color: white; padding: 10px; border-radius: 20px; font-weight: bold; display: inline-block; margin-top: 10px; width: 85%; }
+        .masa-select { background: #fff; color: #000; border: none; padding: 8px; border-radius: 10px; font-size: 1.1em; width: 100%; margin-top: 5px; font-weight: bold; }
+        
+        .category-title { background: #2c3e50; padding: 12px 15px; margin-top: 20px; font-weight: bold; color: #f1c40f; border-right: 5px solid #d35400; font-size: 1.2em; }
+        .menu-list { padding: 10px; }
+        .item-card { background: #1e1e1e; border: 1px solid #333; border-radius: 15px; margin-bottom: 12px; padding: 15px; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
+        .item-info { flex: 1; text-align: right; margin-right: 15px; }
+        .item-name { font-size: 1.2em; font-weight: bold; display: block; margin-bottom: 5px; }
+        .item-price { color: #f1c40f; font-size: 1em; font-weight: bold; }
+        .qty-controls { display: flex; align-items: center; background: #333; border-radius: 30px; padding: 4px; border: 1px solid #444; }
+        .qty-btn { background: #d35400; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .qty-num { margin: 0 15px; font-weight: bold; font-size: 1.3em; min-width: 20px; text-align: center; color: #fff; }
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: #1e1e1e; border-top: 4px solid #27ae60; padding: 20px; box-sizing: border-box; display: none; box-shadow: 0 -10px 20px rgba(0,0,0,0.6); z-index: 1000; }
+        .total-price { text-align: center; margin-bottom: 15px; font-size: 1.4em; color: #f1c40f; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .order-btn { background: #27ae60; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.3em; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        #msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(39, 174, 96, 0.95); color: white; padding: 25px; border-radius: 20px; z-index: 2000; display: none; text-align: center; width: 85%; font-size: 1.2em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 class="logo-text">نبضة كوفي ☕</h1>
+        <div class="masa-container">
+            رقم الطاولة (Masa No):
+            <select id="table-select" class="masa-select">
+                </select>
+        </div>
+    </div>
+
+    <div id="menu-content"></div>
+
+    <div class="cart-bar" id="cart-bar">
+        <div class="total-price" id="total-display">0 IQD</div>
+        <button class="order-btn" onclick="sendOrder()">إرسال الطلب للمطبخ (Siparişi Gönder)</button>
+    </div>
+
+    <div id="msg">تم إرسال طلبك للمطبخ بنجاح! ✅</div>
+
+    <script>
+        // Masaları otomatik 1'den 50'ye kadar doldur
+        const select = document.getElementById('table-select');
+        for (let i = 1; i <= 50; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = `طاولة ${i}`;
+            select.appendChild(opt);
+        }
+
+        const menuData = [
+            { category: "القهوة (Kahveler)", items: [
+                { id: 1, name: "قهوة جقليتية", price: 1000 },
+                { id: 2, name: "قهوة عربية", price: 1000 },
+                { id: 3, name: "قهوة تركية", price: 1000 },
+                { id: 4, name: "قهوة عثمانية", price: 1500 },
+                { id: 5, name: "نسكافيه", price: 1000 },
+                { id: 6, name: "نسكافيه بالحليب", price: 1500 },
+                { id: 7, name: "حليب", price: 1000 },
+                { id: 8, name: "شاي", price: 500 }
+            ]},
+            { category: "اسبريسو (Espresso)", items: [
+                { id: 9, name: "اسبريسو", price: 1500 },
+                { id: 10, name: "اسبريسو دبل", price: 1500 },
+                { id: 11, name: "اسبريسو ماكياتو", price: 1500 },
+                { id: 12, name: "ماكياتو بالكراميل", price: 1500 },
+                { id: 13, name: "ماكياتو بالشوكولاتة", price: 1500 }
+            ]},
+            { category: "الموكا (Moca)", items: [
+                { id: 14, name: "موكا", price: 1500 },
+                { id: 15, name: "موكا كراميل", price: 1500 },
+                { id: 16, name: "موكا شوكولاتة بيضاء", price: 1500 },
+                { id: 17, name: "لاتيه", price: 1500 },
+                { id: 18, name: "كابتشينو", price: 1500 },
+                { id: 19, name: "شوكولاتة", price: 1500 },
+                { id: 20, name: "امريكانو", price: 1000 }
+            ]},
+            { category: "ايس كوفي (Iced Coffee)", items: [
+                { id: 21, name: "ايس لاتيه", price: 1500 },
+                { id: 22, name: "ايس موكا", price: 1500 },
+                { id: 23, name: "ايس كابتشينو", price: 1500 },
+                { id: 24, name: "ايس كراميل موكا", price: 1500 },
+                { id: 25, name: "ايس امريكانو", price: 1500 },
+                { id: 26, name: "ايس نبضة", price: 2000 }
+            ]},
+            { category: "العصائر (Meyve Suları)", items: [
+                { id: 27, name: "برتقال", price: 1500 },
+                { id: 28, name: "ليمون", price: 2000 },
+                { id: 29, name: "مانجو", price: 1500 },
+                { id: 30, name: "كوكتيل نبضة", price: 2000 },
+                { id: 31, name: "موز بالحليب", price: 1500 },
+                { id: 32, name: "رمان", price: 1500 }
+            ]},
+            { category: "سموذي (Smoothie)", items: [
+                { id: 33, name: "سموذي موز وليمون", price: 2000 },
+                { id: 34, name: "سموذي تفاح اخضر", price: 2000 },
+                { id: 35, name: "سموذي بلو بيري", price: 2000 },
+                { id: 36, name: "سموذي اناناس", price: 2000 },
+                { id: 37, name: "سموذي نبضة", price: 2000 }
+            ]},
+            { category: "ميلك شيك (Milkshake)", items: [
+                { id: 38, name: "ميلك شيك موز", price: 1500 },
+                { id: 39, name: "ميلك شيك كاكاو", price: 1500 },
+                { id: 40, name: "ميلك شيك فرولة", price: 1500 },
+                { id: 41, name: "ميلك شيك فانيلا", price: 1500 },
+                { id: 42, name: "ميلك شيك كراميل", price: 1500 }
+            ]},
+            { category: "موهيتو (Mojito)", items: [
+                { id: 43, name: "موهيتو بلوبيري", price: 1500 },
+                { id: 44, name: "موهيتو فرولة", price: 1500 },
+                { id: 45, name: "موهيتو اناناس", price: 1500 },
+                { id: 46, name: "موهيتو ليمون", price: 2000 },
+                { id: 47, name: "موهيتو مانكو", price: 1500 }
+            ]}
+        ];
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-7",
+            databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
+            projectId: "nabda-coffee",
+            appId: "1:561770469999:web:f2be91da76"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let cart = {};
+
+        function renderMenu() {
+            const container = document.getElementById('menu-content');
+            container.innerHTML = "";
+            let totalAmount = 0;
+
+            menuData.forEach(cat => {
+                let catHtml = `<div class="category-title">${cat.category}</div><div class="menu-list">`;
+                cat.items.forEach(item => {
+                    const q = cart[item.id] || 0;
+                    totalAmount += q * item.price;
+                    catHtml += `
+                        <div class="item-card">
+                            <div class="item-info">
+                                <span class="item-name">${item.name}</span>
+                                <span class="item-price">${item.price.toLocaleString()} IQD</span>
+                            </div>
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="updateCart(${item.id}, 1)">+</button>
+                                <span class="qty-num">${q}</span>
+                                <button class="qty-btn" style="background:#555" onclick="updateCart(${item.id}, -1)">-</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                catHtml += `</div>`;
+                container.innerHTML += catHtml;
+            });
+
+            const bar = document.getElementById('cart-bar');
+            if (Object.keys(cart).length > 0) {
+                bar.style.display = "block";
+                document.getElementById('total-display').innerText = `الإجمالي: ${totalAmount.toLocaleString()} IQD`;
+            } else {
+                bar.style.display = "none";
+            }
+        }
+
+        function updateCart(id, change) {
+            cart[id] = (cart[id] || 0) + change;
+            if (cart[id] <= 0) delete cart[id];
+            renderMenu();
+        }
+
+        function sendOrder() {
+            const selectedTable = document.getElementById('table-select').value;
+            let orderSummary = [];
+            for (let id in cart) {
+                let foundItem;
+                menuData.forEach(c => {
+                    const it = c.items.find(i => i.id == id);
+                    if (it) foundItem = it;
+                });
+                orderSummary.push(`${cart[id]}x ${foundItem.name}`);
+            }
+
+            const time = new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0');
+
+            db.ref('orders').push({
+                table: `طاولة ${selectedTable}`,
+                items: orderSummary.join(", "),
+                time: time
+            }).then(() => {
+                const msg = document.getElementById('msg');
+                msg.style.display = "block";
+                setTimeout(() => { msg.style.display = "none"; }, 3000);
+                cart = {};
+                renderMenu();
+            });
+        }
+
+        renderMenu();
+    </script>
+</body>
+</html>
