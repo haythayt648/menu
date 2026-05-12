@@ -3,93 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mishwar Super App | مشوار</title>
+    <title>Mishwar Pro | مشوار</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --getir-purple: #5d3ebc; --getir-yellow: #ffd200; --white: #ffffff; --gray: #f3f3f6; }
-        body { background: var(--gray); font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; }
+        :root { --main: #5d3ebc; --yellow: #ffd200; --bg: #f3f3f6; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
         
-        /* Header & Search */
-        .header { background: var(--getir-purple); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; border-radius: 0 0 20px 20px; }
-        .search-bar { background: white; margin: 10px 15px; padding: 10px; border-radius: 10px; display: flex; align-items: center; color: #999; font-size: 0.9rem; }
+        /* Adres Bölümü - Zorunlu */
+        .address-bar { background: white; padding: 15px; border-bottom: 2px solid var(--main); position: sticky; top: 0; z-index: 1000; }
+        .address-input { width: 100%; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
 
-        /* Categories */
-        .cats { display: flex; overflow-x: auto; padding: 15px; gap: 12px; white-space: nowrap; scrollbar-width: none; }
-        .cat-card { background: white; min-width: 75px; padding: 10px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cat-card img { width: 45px; height: 45px; border-radius: 10px; margin-bottom: 5px; }
+        /* Kategori Filtreleri */
+        .cats { display: flex; overflow-x: auto; padding: 15px; gap: 10px; }
+        .cat-btn { background: white; padding: 8px 20px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
 
-        /* Restaurant List */
-        .res-container { padding: 0 15px; }
-        .res-card { background: white; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
-        .res-img { width: 100%; height: 160px; object-fit: cover; }
-        .res-badge { position: absolute; top: 15px; right: 15px; background: var(--getir-yellow); padding: 5px 12px; border-radius: 10px; font-weight: bold; font-size: 0.8rem; }
-        .res-content { padding: 15px; }
-        .res-name { font-size: 1.1rem; font-weight: bold; margin: 0; color: #333; }
-        .res-info { display: flex; gap: 15px; font-size: 0.85rem; color: #666; margin-top: 8px; align-items: center; }
-        .rating { color: var(--getir-purple); font-weight: bold; background: #f0edff; padding: 2px 8px; border-radius: 6px; }
+        /* Ürün Kartları */
+        .item-card { background: white; margin: 10px 15px; border-radius: 15px; display: flex; align-items: center; padding: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
+        .item-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+        .item-info { flex-grow: 1; margin-right: 15px; }
+        .add-btn { background: white; border: 1px solid #ddd; color: var(--main); font-weight: bold; padding: 5px 15px; border-radius: 8px; cursor: pointer; }
 
-        /* Menu Modal */
-        #menu-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; display: none; overflow-y: auto; transition: 0.3s; }
-        .menu-header { background: var(--getir-purple); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .item-row { display: flex; padding: 15px; border-bottom: 1px solid #eee; align-items: center; }
-        .item-img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; margin-left: 15px; }
-        .item-detail { flex-grow: 1; text-align: right; }
-        .add-box { border: 1px solid #ddd; padding: 5px 15px; border-radius: 10px; color: var(--getir-purple); font-weight: bold; cursor: pointer; }
+        /* Ürün Notu Modalı */
+        #note-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 3000; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 85%; padding: 20px; border-radius: 20px; text-align: center; }
+        .modal-input { width: 100%; height: 80px; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; }
 
-        /* Checkout Bar */
-        .cart-bar { position: fixed; bottom: 20px; left: 5%; width: 90%; background: var(--getir-purple); color: white; padding: 15px; border-radius: 15px; display: none; justify-content: space-between; align-items: center; font-weight: bold; z-index: 3000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        /* Alt Sepet Çubuğu */
+        .cart-footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: none; justify-content: space-between; align-items: center; z-index: 2000; }
+        .btn-order { background: var(--main); color: white; padding: 12px 30px; border-radius: 12px; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
 
-    <div class="header">مشوار - Mishwar 🚀</div>
-    <div class="search-bar">🔍 ابحث عن مطعم أو وجبة...</div>
+    <div class="address-bar">
+        <label style="font-size: 0.8rem; font-weight: bold; color: var(--main);">📍 عنوان التوصيل (مطلوب):</label>
+        <input type="text" id="user-address" class="address-input" placeholder="اكتب منطقتك ورقم دارك هنا...">
+    </div>
 
     <div class="cats">
-        <div class="cat-card"><img src="https://cdn-icons-png.flaticon.com/512/3081/3081918.png">ماركت</div>
-        <div class="cat-card"><img src="https://cdn-icons-png.flaticon.com/512/706/706164.png">كباب</div>
-        <div class="cat-card"><img src="https://cdn-icons-png.flaticon.com/512/924/924514.png">قهوة</div>
-        <div class="cat-card"><img src="https://cdn-icons-png.flaticon.com/512/2674/2674068.png">حلويات</div>
+        <div class="cat-btn" onclick="filter('all')">الكل</div>
+        <div class="cat-btn" onclick="filter('food')">مطاعم</div>
+        <div class="cat-btn" onclick="filter('cafe')">كافيهات</div>
+        <div class="cat-btn" onclick="filter('pharma')">صيدليات</div>
     </div>
 
-    <div class="res-container" id="shops-list">
-        <div class="res-card" onclick="openShop('Nabdda Coffee', [['كابتشينو', 3500, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200'], ['وافل مشكل', 3500, 'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=200']])">
-            <div class="res-badge">توصيل مجاني</div>
-            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=500" class="res-img">
-            <div class="res-content">
-                <p class="res-name">Nabdda Coffee</p>
-                <div class="res-info">
-                    <span class="rating">⭐ 4.9</span>
-                    <span>🕒 15-25 دقيقة</span>
-                </div>
-            </div>
+    <div id="items-list">
         </div>
 
-        <div class="res-card" onclick="openShop('بركة كباب', [['نفر كباب مشوي', 12000, 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=200'], ['تكة دجاج', 10000, 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=200']])">
-            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500" class="res-img">
-            <div class="res-content">
-                <p class="res-name">بركة كباب (الشيف باشا)</p>
-                <div class="res-info">
-                    <span class="rating">⭐ 5.0</span>
-                    <span>🕒 25-35 دقيقة</span>
-                </div>
-            </div>
-        </div>
+    <div id="cart-footer" class="cart-footer">
+        <div>المجموع: <b id="total-price">0</b> د.ع</div>
+        <button class="btn-order" onclick="processOrder()">تأكيد الطلب ✔️</button>
     </div>
 
-    <div id="cart-bar" class="cart-bar">
-        <span id="cart-total">0 د.ع</span>
-        <span onclick="sendOrder()">إتمام الطلب ></span>
-    </div>
-
-    <div id="menu-modal">
-        <div class="menu-header">
-            <span onclick="closeShop()" style="font-size: 1.5rem; cursor:pointer;">✕</span>
-            <span id="modal-shop-name" style="font-weight:bold;">القائمة</span>
-            <span>💬</span>
+    <div id="note-modal">
+        <div class="modal-content">
+            <h3 id="modal-item-name">اسم المنتج</h3>
+            <p>أضف ملاحظاتك (اختياري)</p>
+            <textarea id="item-note" class="modal-input" placeholder="مثلاً: بدون بصل، صوص زيادة..."></textarea>
+            <button class="btn-order" style="margin-top: 15px; width: 100%;" onclick="confirmAdd()">إضافة للسلة</button>
         </div>
-        <div id="menu-items"></div>
     </div>
 
     <script>
@@ -102,56 +76,70 @@
         const db = firebase.database();
 
         let cart = [];
-        let currentShopName = "";
+        let tempItem = null;
 
-        function openShop(name, items) {
-            currentShopName = name;
-            document.getElementById('modal-shop-name').innerText = name;
-            const container = document.getElementById('menu-items');
-            container.innerHTML = "";
-            items.forEach(item => {
-                container.innerHTML += `
-                    <div class="item-row">
-                        <img src="${item[2]}" class="item-img">
-                        <div class="item-detail">
-                            <b>${item[0]}</b><br>
-                            <small style="color:var(--getir-purple);">${item[1]} د.ع</small>
-                        </div>
-                        <div class="add-box" onclick="addToCart('${item[0]}', ${item[1]})">+</div>
-                    </div>`;
-            });
-            document.getElementById('menu-modal').style.display = 'block';
+        const products = [
+            { id: 1, name: "نفر كباب", price: 12000, cat: "food", img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=200" },
+            { id: 2, name: "كابتشينو", price: 3500, cat: "cafe", img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200" },
+            { id: 3, name: "بنادول ادموند", price: 1500, cat: "pharma", img: "https://images-na.ssl-images-amazon.com/images/I/51r2611N5YL._AC_SL1000_.jpg" }
+        ];
+
+        function loadItems() {
+            const list = document.getElementById('items-list');
+            list.innerHTML = products.map(p => `
+                <div class="item-card">
+                    <img src="${p.img}" class="item-img">
+                    <div class="item-info">
+                        <b>${p.name}</b><br>
+                        <span style="color:var(--main);">${p.price} د.ع</span>
+                    </div>
+                    <button class="add-btn" onclick="showNoteModal(${p.id})">إضافة</button>
+                </div>
+            `).join('');
         }
 
-        function closeShop() { document.getElementById('menu-modal').style.display = 'none'; }
+        function showNoteModal(id) {
+            tempItem = products.find(p => p.id === id);
+            document.getElementById('modal-item-name').innerText = tempItem.name;
+            document.getElementById('item-note').value = "";
+            document.getElementById('note-modal').style.display = 'flex';
+        }
 
-        function addToCart(name, price) {
-            cart.push({name, price});
+        function confirmAdd() {
+            const note = document.getElementById('item-note').value;
+            cart.push({ ...tempItem, note: note });
+            document.getElementById('note-modal').style.display = 'none';
             updateCart();
         }
 
         function updateCart() {
-            let total = cart.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('cart-total').innerText = total + " د.ع";
-            document.getElementById('cart-bar').style.display = total > 0 ? 'flex' : 'none';
+            let total = cart.reduce((s, i) => s + i.price, 0);
+            document.getElementById('total-price').innerText = total;
+            document.getElementById('cart-footer').style.display = total > 0 ? 'flex' : 'none';
         }
 
-        function sendOrder() {
-            let itemsText = cart.map(i => i.name).join(", ");
-            let totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
-            
-            db.ref('mishwar_orders').push({
-                customer: "Basha",
-                restaurant: currentShopName,
-                items: itemsText,
-                total: totalPrice,
+        function processOrder() {
+            const addr = document.getElementById('user-address').value;
+            if (!addr) {
+                alert("Basha! العنوان مطلوب قبل الطلب.");
+                return;
+            }
+
+            const orderData = {
+                items: cart.map(i => `${i.name} (${i.note || 'لا يوجد ملاحظة'})`).join(" - "),
+                total: cart.reduce((s, i) => s + i.price, 0),
+                address: addr,
                 status: "waiting",
-                time: new Date().toLocaleTimeString('ar-IQ')
-            }).then(() => {
-                alert("تم إرسال طلبك للباشا بنجاح! ✅");
-                cart = []; updateCart(); closeShop();
+                timestamp: Date.now()
+            };
+
+            db.ref('mishwar_orders').push(orderData).then(() => {
+                alert("تم إرسال الطلب! ✅");
+                cart = []; updateCart();
             });
         }
+
+        loadItems();
     </script>
 </body>
 </html>
