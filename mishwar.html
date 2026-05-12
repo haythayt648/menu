@@ -3,39 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طلب جديد | Mishwar</title>
+    <title>Mishwar Express | مشوار</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #fdfdfd; font-family: sans-serif; margin: 0; padding: 0; }
-        .header { background: #ff6b00; color: white; padding: 25px; text-align: center; font-size: 1.6em; font-weight: bold; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
-        .shop-card { background: white; margin: 20px; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #eee; text-align: center; }
-        .btn-order { background: #ff6b00; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1em; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        #login { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ff6b00; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
-        input { padding: 15px; border-radius: 12px; border: none; width: 80%; margin-bottom: 15px; font-size: 1em; text-align: center; }
+        :root { --main: #ff6b00; --dark: #222; }
+        body { background: #f4f4f7; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding-bottom: 80px; }
+        .nav-top { background: var(--main); color: white; padding: 20px; text-align: center; font-size: 1.4em; font-weight: bold; border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .section-title { padding: 15px; font-weight: bold; color: var(--dark); font-size: 1.2em; }
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
+        .shop-card { background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; }
+        .shop-card:active { transform: scale(0.95); }
+        .shop-card i { font-size: 2em; display: block; margin-bottom: 10px; }
+        
+        /* Sepet Barı */
+        .cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--dark); color: white; padding: 15px; display: none; justify-content: space-between; align-items: center; border-radius: 20px 20px 0 0; z-index: 1000; }
+        .btn-confirm { background: var(--main); border: none; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
+        
+        /* Modal (Ürün Listesi) */
+        #menu-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: none; z-index: 2000; overflow-y: auto; }
+        .menu-item { display: flex; justify-content: space-between; padding: 20px; border-bottom: 1px solid #eee; align-items: center; }
+        .add-btn { background: var(--main); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="toast"></div>
 
-    <div id="login">
-        <h1 style="color:white; margin-bottom:30px;">مشوار إكسبريس 🚀</h1>
-        <input type="text" id="cust-name" placeholder="اكتب اسمك هنا">
-        <input type="tel" id="cust-phone" placeholder="رقم الموبايل">
-        <button onclick="saveUser()" style="padding:15px; width:85%; border-radius:12px; border:none; background:#222; color:white; font-weight:bold; font-size:1.1em;">ابدأ الطلب</button>
+    <div class="nav-top">مشوار إكسبريس 🚀</div>
+
+    <div class="section-title">المطاعم والأسواق</div>
+    <div class="shop-grid">
+        <div class="shop-card" onclick="openShop('Nabdda Coffee', [['قهوة تركية', 1000], ['لاتيه', 2000], ['ايس كوفي', 1500]])">☕ Nabdda Coffee</div>
+        <div class="shop-card" onclick="openShop('بركة كباب', [['نفر كباب', 12000], ['تكة دجاج', 10000]])">🍢 بركة كباب</div>
+        <div class="shop-card" onclick="openShop('حلويات السلطان', [['وافل مشكل', 3500], ['كيك شوكولاتة', 1500]])">🍰 الحلويات</div>
+        <div class="shop-card" onclick="openShop('سوبر ماركت', [['عصير برتقال', 1500], ['مكسيكا ليمون', 2000]])">🛒 الماركت</div>
     </div>
 
-    <div class="header">قائمة المطاعم</div>
-
-    <div class="shop-card">
-        <h2 style="margin-top:0;">بركة كباب 🍢</h2>
-        <button class="btn-order" onclick="sendOrder('بركة كباب', 'نفر كباب مشوي', '12000')">اطلب نفر كباب (12000)</button>
+    <div id="cart-bar" class="cart-bar">
+        <div>المجموع: <span id="total-price">0</span> د.ع</div>
+        <button class="btn-confirm" onclick="checkout()">تأكيد الطلب ✔️</button>
     </div>
 
-    <div class="shop-card">
-        <h2 style="margin-top:0;">Nabdda Coffee ☕</h2>
-        <button class="btn-order" onclick="sendOrder('Nabdda Coffee', 'كابتشينو بارد', '3500')">اطلب كابتشينو (3500)</button>
+    <div id="menu-modal">
+        <div class="nav-top" style="border-radius:0;">
+            <span onclick="closeShop()" style="float:right; padding-right:20px; cursor:pointer;">X</span>
+            <span id="current-shop-name">المحل</span>
+        </div>
+        <div id="menu-list"></div>
     </div>
 
     <script>
@@ -47,32 +60,51 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function msg(t) {
-            const el = document.getElementById('toast');
-            el.innerText = t; el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 2500);
+        let cart = [];
+        let total = 0;
+        let currentShop = "";
+
+        function openShop(name, items) {
+            currentShop = name;
+            document.getElementById('current-shop-name').innerText = name;
+            const list = document.getElementById('menu-list');
+            list.innerHTML = "";
+            items.forEach(item => {
+                list.innerHTML += `
+                    <div class="menu-item">
+                        <div><b>${item[0]}</b><br><small>${item[1]} د.ع</small></div>
+                        <button class="add-btn" onclick="addToCart('${item[0]}', ${item[1]})">اضافة</button>
+                    </div>`;
+            });
+            document.getElementById('menu-modal').style.display = 'block';
         }
 
-        function saveUser() {
-            const n = document.getElementById('cust-name').value;
-            const p = document.getElementById('cust-phone').value;
-            if(n && p) {
-                localStorage.setItem('u_n', n); localStorage.setItem('u_p', p);
-                document.getElementById('login').style.display = 'none';
-            } else { alert("يرجى كتابة الاسم والهاتف"); }
-        }
-        if(localStorage.getItem('u_n')) document.getElementById('login').style.display = 'none';
+        function closeShop() { document.getElementById('menu-modal').style.display = 'none'; }
 
-        function sendOrder(rest, dish, price) {
-            const orderObj = {
-                customer: localStorage.getItem('u_n'),
-                phone: localStorage.getItem('u_p'),
-                restaurant: rest,
-                item: dish + " (" + price + " IQD)",
+        function addToCart(name, price) {
+            cart.push(name);
+            total += price;
+            document.getElementById('total-price').innerText = total;
+            document.getElementById('cart-bar').style.display = 'flex';
+            // Küçük bir bildirim (Hız için)
+            console.log(name + " eklendi");
+        }
+
+        function checkout() {
+            const data = {
+                customer: "Basha Admin", // Burayı kullanıcı logininden alabiliriz
+                items: cart.join(", "),
+                total: total,
+                restaurant: currentShop,
                 status: "waiting",
                 time: new Date().toLocaleTimeString()
             };
-            db.ref('mishwar_orders').push(orderObj).then(() => msg("✅ تم إرسال طلبك إلى الباشا"));
+            db.ref('mishwar_orders').push(data).then(() => {
+                alert("تم ارسال طلبك بنجاح!");
+                cart = []; total = 0;
+                document.getElementById('cart-bar').style.display = 'none';
+                closeShop();
+            });
         }
     </script>
 </body>
