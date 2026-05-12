@@ -3,122 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mishwar | مشوار</title>
+    <title>Mishwar Super App | مشوار</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --purple: #5d3ebc; --yellow: #ffd200; --bg: #f3f3f6; --white: #ffffff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: #333; }
+        :root { --purple: #5d3ebc; --yellow: #ffd200; --bg: #f3f3f6; --white: #ffffff; --red: #ff3b30; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: #333; overflow-x: hidden; }
 
-        /* Header & Address */
-        .header { background: var(--purple); padding: 15px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 1000; }
-        .header .logo { color: var(--yellow); font-weight: 800; font-size: 1.5rem; }
-        .address-section { background: var(--white); padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; }
-        .address-section input { border: none; outline: none; flex-grow: 1; font-family: inherit; font-size: 0.85rem; color: var(--purple); }
+        /* HEADER */
+        .header { background: var(--purple); padding: 15px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { color: var(--yellow); font-weight: 800; font-size: 1.6rem; letter-spacing: 1px; }
 
-        /* Categories */
-        .cats-container { background: var(--white); display: flex; overflow-x: auto; padding: 15px; gap: 15px; scrollbar-width: none; }
-        .cat-item { min-width: 70px; text-align: center; }
-        .cat-icon { width: 60px; height: 60px; background: var(--bg); border-radius: 15px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .cat-item span { font-size: 0.75rem; font-weight: 700; }
+        /* ADDRESS BAR */
+        .address-bar { background: var(--white); padding: 12px 15px; border-bottom: 2px solid var(--purple); display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 700; color: var(--purple); }
+        .address-bar input { border: none; flex-grow: 1; font-family: inherit; font-size: 0.85rem; background: transparent; }
 
-        /* Restaurant List */
+        /* CATEGORY SLIDER */
+        .cats { background: var(--white); display: flex; overflow-x: auto; padding: 15px; gap: 15px; scrollbar-width: none; border-bottom: 1px solid #eee; }
+        .cat-item { min-width: 75px; text-align: center; cursor: pointer; }
+        .cat-icon { width: 65px; height: 65px; background: var(--bg); border-radius: 20px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; transition: 0.3s; border: 1px solid #eee; }
+        .cat-item:hover .cat-icon { border-color: var(--purple); background: #f0edff; }
+        .cat-item span { font-size: 0.75rem; font-weight: 800; color: #555; }
+
+        /* RESTAURANT LIST */
         .res-list { padding: 15px; }
-        .res-card { background: var(--white); border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; position: relative; }
-        .res-img { width: 100%; height: 180px; object-fit: cover; }
-        .res-info { padding: 15px; }
-        .res-title { font-size: 1.1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-        .res-rating { color: var(--purple); font-size: 0.9rem; }
-        .res-details { font-size: 0.8rem; color: #777; margin-top: 5px; }
-        .res-badge { position: absolute; top: 15px; right: 15px; background: var(--white); padding: 5px 12px; border-radius: 10px; font-weight: bold; font-size: 0.75rem; color: var(--purple); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .res-card { background: var(--white); border-radius: 22px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); cursor: pointer; position: relative; transition: transform 0.2s; }
+        .res-card:active { transform: scale(0.98); }
+        .res-img { width: 100%; height: 190px; object-fit: cover; }
+        .res-badge { position: absolute; top: 15px; right: 15px; background: var(--white); padding: 6px 14px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; color: var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .res-content { padding: 18px; }
+        .res-name { font-size: 1.15rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .res-rating { color: var(--purple); font-size: 0.9rem; background: #f0edff; padding: 2px 8px; border-radius: 6px; }
+        .res-sub { font-size: 0.8rem; color: #777; font-weight: 600; }
 
-        /* Menu Sheet (Slide Up) */
-        #menu-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 90%; background: var(--white); z-index: 2000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); overflow-y: auto; }
-        #menu-sheet.active { bottom: 0; }
-        .sheet-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--white); z-index: 10; border-radius: 30px 30px 0 0; }
-        .close-btn { color: var(--purple); font-weight: 800; cursor: pointer; font-size: 1.2rem; }
+        /* SLIDE-UP MENU PANEL */
+        #menu-panel { position: fixed; bottom: -100%; left: 0; width: 100%; height: 88%; background: var(--white); z-index: 2000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); border-radius: 30px 30px 0 0; box-shadow: 0 -15px 40px rgba(0,0,0,0.25); overflow-y: auto; }
+        #menu-panel.active { bottom: 0; }
+        .panel-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--white); z-index: 100; border-radius: 30px 30px 0 0; }
+        .panel-title { font-weight: 800; font-size: 1.2rem; }
+        .close-btn { color: var(--purple); font-weight: 800; cursor: pointer; padding: 5px 10px; font-size: 1.3rem; }
 
-        /* Products */
-        .product-card { display: flex; padding: 20px; border-bottom: 1px solid #f9f9f9; align-items: center; justify-content: space-between; }
-        .p-info { flex-grow: 1; }
-        .p-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
-        .p-price { color: var(--purple); font-weight: 800; font-size: 0.95rem; }
-        .p-controls { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #eee; padding: 5px 12px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.04); }
-        .btn-act { border: none; background: none; color: var(--purple); font-size: 1.5rem; font-weight: bold; cursor: pointer; width: 30px; }
-        .qty-val { color: var(--purple); font-weight: 800; min-width: 20px; text-align: center; }
+        /* PRODUCTS IN MENU */
+        .product-item { display: flex; flex-direction: column; padding: 20px; border-bottom: 1px solid #f8f8f8; }
+        .p-main { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .p-text { flex-grow: 1; }
+        .p-name { font-weight: 800; font-size: 1.05rem; margin-bottom: 5px; }
+        .p-price { color: var(--purple); font-weight: 800; font-size: 1rem; }
+        .p-note { width: 100%; margin-top: 15px; padding: 10px; border-radius: 12px; border: 1px solid #eee; font-family: inherit; font-size: 0.85rem; background: #fdfdfd; display: none; }
+        
+        /* QUANTITY CONTROLS */
+        .p-controls { display: flex; align-items: center; gap: 15px; background: var(--white); border: 1px solid #eee; padding: 6px 14px; border-radius: 14px; box-shadow: 0 4px 8px rgba(0,0,0,0.06); }
+        .math-btn { border: none; background: none; color: var(--purple); font-size: 1.6rem; font-weight: 800; cursor: pointer; width: 30px; }
+        .qty-val { color: var(--purple); font-weight: 800; min-width: 25px; text-align: center; font-size: 1.1rem; }
 
-        /* Floating Bottom Cart Bar */
-        .cart-bar { position: fixed; bottom: 25px; left: 5%; width: 90%; background: var(--purple); color: var(--white); padding: 18px; border-radius: 18px; display: none; justify-content: space-between; align-items: center; font-weight: 700; z-index: 3000; box-shadow: 0 10px 25px rgba(93, 62, 188, 0.4); }
-        .min-alert { background: #ff4444; color: white; padding: 8px; text-align: center; font-size: 0.8rem; font-weight: bold; position: fixed; bottom: 95px; width: 100%; display: none; }
+        /* FOOTER CART BAR */
+        .cart-footer { position: fixed; bottom: 25px; left: 5%; width: 90%; background: var(--purple); color: var(--white); padding: 20px; border-radius: 20px; display: none; justify-content: space-between; align-items: center; font-weight: 800; z-index: 3000; box-shadow: 0 12px 30px rgba(93, 62, 188, 0.4); cursor: pointer; transition: 0.3s; }
+        .cart-footer:active { transform: scale(0.96); }
+        .min-order-warn { background: var(--red); color: white; padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 800; position: fixed; bottom: 105px; width: 100%; display: none; z-index: 2900; }
 
-        /* Simple Bottom Nav */
-        .footer-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 70px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; }
-        .nav-link { text-align: center; color: #ccc; text-decoration: none; font-size: 0.7rem; font-weight: bold; }
-        .nav-link.active { color: var(--purple); }
-        .nav-link i { font-size: 1.5rem; display: block; margin-bottom: 2px; }
+        /* BOTTOM TAB NAV */
+        .tab-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 1500; }
+        .tab-item { text-align: center; color: #ccc; text-decoration: none; font-size: 0.75rem; font-weight: 800; }
+        .tab-item.active { color: var(--purple); }
+        .tab-item i { font-size: 1.6rem; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div class="header"><div class="logo">mishwar</div></div>
 
-    <div class="address-section">
-        📍 <input type="text" id="user-addr" placeholder="أدخل عنوان التوصيل يا باشا (مطلوب)...">
+    <div class="address-bar">
+        📍 <input type="text" id="delivery-address" placeholder="أدخل عنوانك بدقة لتوصيل أسرع (مطلوب)...">
     </div>
 
-    <div class="cats-container">
-        <div class="cat-item"><div class="cat-icon">🍗</div><span>مطاعم</span></div>
+    <div class="cats">
+        <div class="cat-item"><div class="cat-icon">🍔</div><span>مطاعم</span></div>
         <div class="cat-item"><div class="cat-icon">☕</div><span>كافيهات</span></div>
-        <div class="cat-item"><div class="cat-icon">💊</div><span>صيدلية</span></div>
+        <div class="cat-item"><div class="cat-icon">🏥</div><span>مستشفيات</span></div>
+        <div class="cat-item"><div class="cat-icon">💊</div><span>صيدليات</span></div>
         <div class="cat-item"><div class="cat-icon">🛒</div><span>ماركت</span></div>
-        <div class="cat-item"><div class="cat-icon">🍰</div><span>حلويات</span></div>
     </div>
 
     <div class="res-list">
-        <div class="res-card" onclick="showMenu('بركة كباب', [{n:'كباب نفر', p:12000}, {n:'تكة دجاج', p:10000}, {n:'كفتة مشوية', p:11500}])">
-            <div class="res-badge">توصيل مجاني ✨</div>
-            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600" class="res-img">
-            <div class="res-info">
-                <div class="res-title">بركة كباب (الشيف باشa) <span class="res-rating">★ 5.0</span></div>
-                <div class="res-details">🕒 20-30 دقيقة • الحد الأدنى 5,000 د.ع</div>
+        <div class="res-card" onclick="showShop('بركة كباب', [{n:'كباب عراقي نفر', p:12000}, {n:'تكة دجاج شواء', p:10000}, {n:'كفتة مشوية', p:11500}, {n:'ماعون مقبلات مشكل', p:5000}])">
+            <div class="res-badge">توصيل مجاني 🛵</div>
+            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800" class="res-img">
+            <div class="res-content">
+                <div class="res-name">بركة كباب (الشيف باشا) <span class="res-rating">★ 5.0</span></div>
+                <div class="res-sub">🕒 20-30 دقيقة • الحد الأدنى 5,000 د.ع</div>
             </div>
         </div>
 
-        <div class="res-card" onclick="showMenu('Nabdda Coffee', [{n:'كابتشينو', p:3500}, {n:'وافل نوتيلا', p:5000}, {n:'لاتيه بارد', p:4000}])">
-            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=600" class="res-img">
-            <div class="res-info">
-                <div class="res-title">Nabdda Coffee <span class="res-rating">★ 4.9</span></div>
-                <div class="res-details">🕒 10-15 دقيقة • الحد الأدنى 3,000 د.ع</div>
+        <div class="res-card" onclick="showShop('Nabdda Coffee', [{n:'كابتشينو إيطالي', p:3500}, {n:'وافل نوتيلا ملكي', p:5000}, {n:'سبانش لاتيه بارد', p:4500}, {n:'كريب فواكه', p:6000}])">
+            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=800" class="res-img">
+            <div class="res-content">
+                <div class="res-name">Nabdda Coffee <span class="res-rating">★ 4.9</span></div>
+                <div class="res-sub">🕒 10-15 دقيقة • الحد الأدنى 3,000 د.ع</div>
             </div>
         </div>
     </div>
 
-    <div id="menu-sheet">
-        <div class="sheet-header">
-            <span id="shop-name" style="font-weight: 800; font-size: 1.2rem;">Menü</span>
-            <span class="close-btn" onclick="hideMenu()">إغلاق ✕</span>
+    <div id="menu-panel">
+        <div class="panel-header">
+            <span id="active-shop-name" class="panel-title">القائمة</span>
+            <span class="close-btn" onclick="hideShop()">إغلاق ✕</span>
         </div>
-        <div id="items-list"></div>
+        <div id="product-container"></div>
     </div>
 
-    <div id="min-warn" class="min-alert">الحد الأدنى للطلب هو 5,000 د.ع</div>
+    <div id="order-warning" class="min-order-warn">باقي لك <span id="remain-amt">0</span> د.ع للوصول للحد الأدنى!</div>
 
-    <div id="cart-footer" class="cart-bar" onclick="finalizeOrder()">
-        <span id="total-val">0 د.ع</span>
-        <span>تأكيد الطلب ➔</span>
+    <div id="main-cart-bar" class="cart-footer" onclick="confirmOrder()">
+        <span id="final-total">0 د.ع</span>
+        <span>تثبيت الطلب الآن ➔</span>
     </div>
 
-    <div class="footer-nav">
-        <a href="#" class="nav-link active">🏠<br>الرئيسية</a>
-        <a href="#" class="nav-link">🔍<br>بحث</a>
-        <a href="#" class="nav-link" style="font-size: 2rem; color: var(--purple);">➕</a>
-        <a href="#" class="nav-link">👤<br>حسابي</a>
-        <a href="#" class="nav-link">🎁<br>عروض</a>
+    <div class="tab-nav">
+        <a href="#" class="tab-item active"><i>🏠</i>الرئيسية</a>
+        <a href="#" class="tab-item"><i>🔍</i>بحث</a>
+        <a href="#" style="font-size: 2.5rem; color: var(--purple); text-decoration: none; margin-bottom: 10px;">⊕</a>
+        <a href="#" class="tab-item"><i>👤</i>حسابي</a>
+        <a href="#" class="tab-item"><i>🎁</i>عروض</a>
     </div>
 
     <script>
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
             databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
@@ -127,76 +138,104 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let cart = {};
-        let activeShop = "";
+        let currentCart = {};
+        let currentShopName = "";
+        const MIN_LIMIT = 5000; // Getir tarzı alt limit
 
-        function showMenu(name, items) {
-            activeShop = name;
-            document.getElementById('shop-name').innerText = name;
-            const container = document.getElementById('items-list');
-            container.innerHTML = items.map(item => `
-                <div class="product-card">
-                    <div class="p-info">
-                        <div class="p-name">${item.n}</div>
-                        <div class="p-price">${item.p.toLocaleString()} د.ع</div>
+        function showShop(name, products) {
+            currentShopName = name;
+            document.getElementById('active-shop-name').innerText = name;
+            const container = document.getElementById('product-container');
+            
+            container.innerHTML = products.map(p => `
+                <div class="product-item">
+                    <div class="p-main">
+                        <div class="p-text">
+                            <div class="p-name">${p.n}</div>
+                            <div class="p-price">${p.p.toLocaleString()} د.ع</div>
+                        </div>
+                        <div class="p-controls">
+                            <button class="math-btn" onclick="updateQuantity('${p.n}', ${p.p}, -1)">-</button>
+                            <span class="qty-val" id="qty-${p.n}">${currentCart[p.n]?.q || 0}</span>
+                            <button class="math-btn" onclick="updateQuantity('${p.n}', ${p.p}, 1)">+</button>
+                        </div>
                     </div>
-                    <div class="p-controls">
-                        <button class="btn-act" onclick="updateItem('${item.n}', ${item.p}, -1)">-</button>
-                        <span class="qty-val" id="q-${item.n}">${cart[item.n]?.qty || 0}</span>
-                        <button class="btn-act" onclick="updateItem('${item.n}', ${item.p}, 1)">+</button>
-                    </div>
+                    <textarea class="p-note" id="note-${p.n}" placeholder="اكتب ملاحظاتك هنا (مثلاً: بدون توابل)..." style="display:${(currentCart[p.n]?.q > 0) ? 'block' : 'none'}">${currentCart[p.n]?.note || ''}</textarea>
                 </div>
             `).join('');
-            document.getElementById('menu-sheet').classList.add('active');
+            
+            document.getElementById('menu-panel').classList.add('active');
         }
 
-        function hideMenu() { document.getElementById('menu-sheet').classList.remove('active'); }
-
-        function updateItem(name, price, delta) {
-            if (!cart[name]) cart[name] = { price, qty: 0 };
-            cart[name].qty = Math.max(0, cart[name].qty + delta);
-            document.getElementById(`q-${name}`).innerText = cart[name].qty;
-            
-            refreshCart();
+        function hideShop() { 
+            document.getElementById('menu-panel').classList.remove('active'); 
         }
 
-        function refreshCart() {
-            let total = 0;
-            for (let key in cart) total += cart[key].price * cart[key].qty;
+        function updateQuantity(name, price, change) {
+            if (!currentCart[name]) currentCart[name] = { p: price, q: 0, note: '' };
             
-            document.getElementById('total-val').innerText = total.toLocaleString() + " د.ع";
-            document.getElementById('cart-footer').style.display = total > 0 ? 'flex' : 'none';
+            currentCart[name].q = Math.max(0, currentCart[name].q + change);
             
-            // Minimum limit check (e.g., 5000 IQD)
-            const minWarn = document.getElementById('min-warn');
-            if (total > 0 && total < 5000) {
-                minWarn.style.display = 'block';
-                document.getElementById('cart-footer').style.opacity = '0.6';
-                document.getElementById('cart-footer').style.pointerEvents = 'none';
+            // UI Güncelleme
+            document.getElementById(`qty-${name}`).innerText = currentCart[name].q;
+            document.getElementById(`note-${name}`).style.display = (currentCart[name].q > 0) ? 'block' : 'none';
+            
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let grandTotal = 0;
+            for (let key in currentCart) {
+                grandTotal += currentCart[key].p * currentCart[key].q;
+            }
+
+            const cartBar = document.getElementById('main-cart-bar');
+            const warnBar = document.getElementById('order-warning');
+            
+            document.getElementById('final-total').innerText = grandTotal.toLocaleString() + " د.ع";
+            cartBar.style.display = (grandTotal > 0) ? 'flex' : 'none';
+
+            // Limit Kontrolü
+            if (grandTotal > 0 && grandTotal < MIN_LIMIT) {
+                warnBar.style.display = 'block';
+                document.getElementById('remain-amt').innerText = (MIN_LIMIT - grandTotal).toLocaleString();
+                cartBar.style.opacity = "0.5";
+                cartBar.style.pointerEvents = "none";
             } else {
-                minWarn.style.display = 'none';
-                document.getElementById('cart-footer').style.opacity = '1';
-                document.getElementById('cart-footer').style.pointerEvents = 'auto';
+                warnBar.style.display = 'none';
+                cartBar.style.opacity = "1";
+                cartBar.style.pointerEvents = "auto";
             }
         }
 
-        function finalizeOrder() {
-            const addr = document.getElementById('user-addr').value;
-            if (!addr) { alert("أدخل عنوانك أولاً يا باشا!"); return; }
+        function confirmOrder() {
+            const addr = document.getElementById('delivery-address').value;
+            if (!addr) {
+                alert("Basha! يرجى إدخال عنوانك أولاً لتتمكن من الطلب.");
+                return;
+            }
 
-            let orderList = Object.entries(cart).filter(i => i[1].qty > 0).map(i => `${i[0]} (x${i[1].qty})`).join(", ");
-            let totalVal = document.getElementById('total-val').innerText;
+            // Sipariş Paketini Hazırla
+            let finalItems = Object.entries(currentCart)
+                .filter(entry => entry[1].q > 0)
+                .map(entry => {
+                    const noteText = document.getElementById(`note-${entry[0]}`).value;
+                    return `${entry[0]} (العدد: ${entry[1].q}) ${noteText ? '[ملاحظة: '+noteText+']' : ''}`;
+                }).join(" | ");
 
-            db.ref('orders').push({
-                shop: activeShop,
-                items: orderList,
-                address: addr,
-                total: totalVal,
-                status: "جديد",
-                timestamp: Date.now()
-            }).then(() => {
-                alert("تم إرسال طلبك بنجاح! 🚀🔥");
-                location.reload();
+            const orderData = {
+                shop: currentShopName,
+                order_details: finalItems,
+                customer_address: addr,
+                total_payment: document.getElementById('final-total').innerText,
+                order_status: "Sipariş Alındı (جديد)",
+                timestamp: new Date().toLocaleString('ar-IQ')
+            };
+
+            // Firebase'e Gönder
+            db.ref('mishwar_orders').push(orderData).then(() => {
+                alert("تم إرسال طلبك بنجama بنجاح! 🚀🔥 سنصلك قريباً.");
+                location.reload(); // Sayfayı sıfırla
             });
         }
     </script>
