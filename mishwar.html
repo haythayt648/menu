@@ -3,88 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basha Admin | لوحة التحكم</title>
+    <title>مشوار إكسبريس</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; padding: 15px; margin: 0; }
-        .admin-header { background: #ff6b00; padding: 15px; text-align: center; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .order-card { background: #1e1e1e; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        .info { margin-bottom: 15px; font-size: 0.95em; line-height: 1.6; }
-        .status-badge { padding: 4px 10px; border-radius: 5px; font-size: 0.8em; font-weight: bold; }
-        .waiting { background: #d9534f; }
-        .delivered { background: #5cb85c; }
-        .btn-group { display: flex; gap: 10px; }
-        .action-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9em; }
-        .btn-done { background: #28a745; }
-        .btn-del { background: #444; }
+        body { background: #f8f9fa; font-family: sans-serif; margin: 0; padding-bottom: 20px; }
+        .header { background: #ff6b00; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
+        .card { background: white; margin: 15px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .btn { background: #ff6b00; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 1000; }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ff6b00; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        input { padding: 15px; border-radius: 10px; border: none; width: 80%; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-
-    <div class="admin-header">
-        <h2 style="margin:0;">لوحة تحكم الباشا 👑</h2>
+    <div id="toast"></div>
+    <div id="login-screen">
+        <h1 style="color:white;">مشوار 🚀</h1>
+        <input type="text" id="u-name" placeholder="الاسم">
+        <input type="tel" id="u-phone" placeholder="رقم الهاتف">
+        <button class="btn" style="background:#222; width:85%;" onclick="login()">دخول</button>
+    </div>
+    <div class="header">مشوار إكسبريس</div>
+    <div class="card">
+        <h3>بركة كباب 🍢</h3>
+        <button class="btn" onclick="order('بركة كباب', 'نفر كباب', '12000')">اطلب نفر كباب (12000)</button>
+    </div>
+    <div class="card">
+        <h3>Nabdda Coffee ☕</h3>
+        <button class="btn" onclick="order('Nabdda Coffee', 'كابتشينو', '3500')">اطلب كابتشينو (3500)</button>
     </div>
 
-    <div id="order-list">جاري تحميل الطلبات... (Siparişler yükleniyor...)</div>
-
     <script>
-        // Senin Firebase Bilgilerin
         const firebaseConfig = {
             apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
             databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
             projectId: "nabda-coffee"
         };
-        
-        // Başlatma Kontrolü
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Verileri Çek
-        db.ref('mishwar_orders').on('value', (snapshot) => {
-            const list = document.getElementById('order-list');
-            list.innerHTML = '';
-            
-            if (!snapshot.exists()) {
-                list.innerHTML = '<p style="text-align:center;">Henüz sipariş yok Basha.</p>';
-                return;
-            }
-
-            snapshot.forEach((child) => {
-                const order = child.val();
-                const key = child.key;
-                const isWaiting = order.status === 'waiting';
-
-                list.innerHTML += `
-                    <div class="order-card">
-                        <div class="info">
-                            <b style="color:#ff6b00;">${order.restaurant}</b><br>
-                            <b>الزبون:</b> ${order.customer}<br>
-                            <b>الطلب:</b> ${order.item}<br>
-                            <b>الحالة:</b> <span class="status-badge ${isWaiting ? 'waiting' : 'delivered'}">
-                                ${isWaiting ? 'انتظار' : 'تم التوصيل ✔️'}
-                            </span>
-                        </div>
-                        <div class="btn-group">
-                            <button class="action-btn btn-done" onclick="completeOrder('${key}')">تم (Bitti)</button>
-                            <button class="action-btn btn-del" onclick="deleteOrder('${key}')">حذف (Sil)</button>
-                        </div>
-                    </div>`;
-            });
-        }, (error) => {
-            document.getElementById('order-list').innerHTML = "Hata oluştu: " + error.message;
-        });
-
-        function completeOrder(id) {
-            db.ref('mishwar_orders/' + id).update({ status: 'delivered' });
+        function showT(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
         }
 
-        function deleteOrder(id) {
-            if(confirm('Emin misin Basha? Sipariş silinecek.')) {
-                db.ref('mishwar_orders/' + id).remove();
+        function login() {
+            const n = document.getElementById('u-name').value;
+            const p = document.getElementById('u-phone').value;
+            if(n && p) {
+                localStorage.setItem('m_n', n); localStorage.setItem('m_p', p);
+                document.getElementById('login-screen').style.display = 'none';
             }
+        }
+        if(localStorage.getItem('m_n')) document.getElementById('login-screen').style.display = 'none';
+
+        function order(r, i, p) {
+            const data = {
+                customer: localStorage.getItem('m_n'),
+                phone: localStorage.getItem('m_p'),
+                restaurant: r,
+                item: i + " (" + p + " IQD)",
+                status: "waiting",
+                time: new Date().toLocaleTimeString()
+            };
+            db.ref('mishwar_orders').push(data).then(() => showT("✅ تم ارسال طلبك"));
         }
     </script>
 </body>
