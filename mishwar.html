@@ -3,35 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشوار إكسبريس</title>
+    <title>طلب جديد | Mishwar</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #f8f9fa; font-family: sans-serif; margin: 0; padding-bottom: 20px; }
-        .header { background: #ff6b00; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
-        .card { background: white; margin: 15px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-        .btn { background: #ff6b00; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 1000; }
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ff6b00; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
-        input { padding: 15px; border-radius: 10px; border: none; width: 80%; margin-bottom: 10px; }
+        body { background: #fdfdfd; font-family: sans-serif; margin: 0; padding: 0; }
+        .header { background: #ff6b00; color: white; padding: 25px; text-align: center; font-size: 1.6em; font-weight: bold; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
+        .shop-card { background: white; margin: 20px; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #eee; text-align: center; }
+        .btn-order { background: #ff6b00; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1em; }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        #login { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ff6b00; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+        input { padding: 15px; border-radius: 12px; border: none; width: 80%; margin-bottom: 15px; font-size: 1em; text-align: center; }
     </style>
 </head>
 <body>
     <div id="toast"></div>
-    <div id="login-screen">
-        <h1 style="color:white;">مشوار 🚀</h1>
-        <input type="text" id="u-name" placeholder="الاسم">
-        <input type="tel" id="u-phone" placeholder="رقم الهاتف">
-        <button class="btn" style="background:#222; width:85%;" onclick="login()">دخول</button>
+
+    <div id="login">
+        <h1 style="color:white; margin-bottom:30px;">مشوار إكسبريس 🚀</h1>
+        <input type="text" id="cust-name" placeholder="اكتب اسمك هنا">
+        <input type="tel" id="cust-phone" placeholder="رقم الموبايل">
+        <button onclick="saveUser()" style="padding:15px; width:85%; border-radius:12px; border:none; background:#222; color:white; font-weight:bold; font-size:1.1em;">ابدأ الطلب</button>
     </div>
-    <div class="header">مشوار إكسبريس</div>
-    <div class="card">
-        <h3>بركة كباب 🍢</h3>
-        <button class="btn" onclick="order('بركة كباب', 'نفر كباب', '12000')">اطلب نفر كباب (12000)</button>
+
+    <div class="header">قائمة المطاعم</div>
+
+    <div class="shop-card">
+        <h2 style="margin-top:0;">بركة كباب 🍢</h2>
+        <button class="btn-order" onclick="sendOrder('بركة كباب', 'نفر كباب مشوي', '12000')">اطلب نفر كباب (12000)</button>
     </div>
-    <div class="card">
-        <h3>Nabdda Coffee ☕</h3>
-        <button class="btn" onclick="order('Nabdda Coffee', 'كابتشينو', '3500')">اطلب كابتشينو (3500)</button>
+
+    <div class="shop-card">
+        <h2 style="margin-top:0;">Nabdda Coffee ☕</h2>
+        <button class="btn-order" onclick="sendOrder('Nabdda Coffee', 'كابتشينو بارد', '3500')">اطلب كابتشينو (3500)</button>
     </div>
 
     <script>
@@ -43,32 +47,32 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function showT(m) {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2000);
+        function msg(t) {
+            const el = document.getElementById('toast');
+            el.innerText = t; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2500);
         }
 
-        function login() {
-            const n = document.getElementById('u-name').value;
-            const p = document.getElementById('u-phone').value;
+        function saveUser() {
+            const n = document.getElementById('cust-name').value;
+            const p = document.getElementById('cust-phone').value;
             if(n && p) {
-                localStorage.setItem('m_n', n); localStorage.setItem('m_p', p);
-                document.getElementById('login-screen').style.display = 'none';
-            }
+                localStorage.setItem('u_n', n); localStorage.setItem('u_p', p);
+                document.getElementById('login').style.display = 'none';
+            } else { alert("يرجى كتابة الاسم والهاتف"); }
         }
-        if(localStorage.getItem('m_n')) document.getElementById('login-screen').style.display = 'none';
+        if(localStorage.getItem('u_n')) document.getElementById('login').style.display = 'none';
 
-        function order(r, i, p) {
-            const data = {
-                customer: localStorage.getItem('m_n'),
-                phone: localStorage.getItem('m_p'),
-                restaurant: r,
-                item: i + " (" + p + " IQD)",
+        function sendOrder(rest, dish, price) {
+            const orderObj = {
+                customer: localStorage.getItem('u_n'),
+                phone: localStorage.getItem('u_p'),
+                restaurant: rest,
+                item: dish + " (" + price + " IQD)",
                 status: "waiting",
                 time: new Date().toLocaleTimeString()
             };
-            db.ref('mishwar_orders').push(data).then(() => showT("✅ تم ارسال طلبك"));
+            db.ref('mishwar_orders').push(orderObj).then(() => msg("✅ تم إرسال طلبك إلى الباشا"));
         }
     </script>
 </body>
