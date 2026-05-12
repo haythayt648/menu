@@ -73,7 +73,8 @@
         const ADMIN_PASSWORD = "2020";
 
         const select = document.getElementById('table-select');
-        for (let i = 1; i <= 50; i++) {
+        // BURASI 80 OLDU BASHA
+        for (let i = 1; i <= 80; i++) {
             const opt = document.createElement('option'); opt.value = `محل ${i}`; opt.innerText = `محل ${i}`; select.appendChild(opt);
         }
         orderLocation = select.value;
@@ -89,13 +90,13 @@
         const menuData = [
             { category: "المشروبات الأساسية", items: [{ id: 100, name: "شاي", price: 500 }, { id: 101, name: "ماء", price: 250 }]},
             { category: "قسم القهوة", items: [{ id: 1, name: "قهوة جقليتية", price: 1000 }, { id: 2, name: "قهوة عربية", price: 1000 }, { id: 3, name: "قهوة تركية", price: 1000 }, { id: 300, name: "قهوة تركية وسط", price: 1000 }, { id: 4, name: "قهوة عثمانية", price: 1500 }, { id: 5, name: "نسكافيه", price: 1000 }, { id: 6, name: "نسكافيه بالحليب", price: 1500 }, { id: 7, name: "حليب", price: 1000 }]},
-            { category: "اسبريسو", items: [{ id: 8, name: "اسبريسو", price: 1000 }, { id: 9, name: "اسبريسو دبل", price: 1500 }, { id: 10, name: "اسبريسو ماكياتو", price: 1500 }]},
+            { category: "اسبريسو", items: [{ id: 8, name: "اسبريسو", price: 1000 }, { id: 9, name: "اسبريسو dبل", price: 1500 }, { id: 10, name: "اسبريسو ماكياتو", price: 1500 }]},
             { category: "ايس كوفي", items: [{ id: 20, name: "ايس كوفي", price: 1500 }, { id: 21, name: "ايس لاتيه", price: 1500 }, { id: 22, name: "ايس موكا", price: 1500 }, { id: 23, name: "ايس كراميل موكا", price: 1500 }, { id: 24, name: "ايس نبضة", price: 2000 }]},
             { category: "قسم المكسيكي (Mexican)", items: [{ id: 401, name: "مكسيكي ليمون", price: 2000 }, { id: 402, name: "مكسيكي رمان", price: 2000 }]},
             { category: "قسم الموهيتو (Mojito)", items: [{ id: 403, name: "موهيتو ليمون", price: 2000 }, { id: 404, name: "موهيتو بلوبيري", price: 1500 }, { id: 405, name: "موهيتو فرولة", price: 1500 }, { id: 406, name: "موهيتو اناناس", price: 1500 }, { id: 407, name: "موهيتو مانجو", price: 1500 }]},
             { category: "العصائر الطبيعية", items: [{ id: 200, name: "كوكتيل نبضة", price: 2000 }, { id: 32, name: "برتقال و ليمون", price: 2000 }, { id: 26, name: "عصير ليمون", price: 2000 }, { id: 33, name: "ليمون و نعناع", price: 2000 }, { id: 31, name: "عصير فراولة", price: 1500 }, { id: 27, name: "عصير برتقال", price: 1500 }, { id: 28, name: "عصير مانجو", price: 1500 }, { id: 201, name: "عصير خوخ", price: 1500 }, { id: 29, name: "عصير اناناس", price: 1500 }, { id: 30, name: "موز بالحليب", price: 1500 }]},
             { category: "قسم السموذي (Smoothie)", items: [{ id: 501, name: "سموذي نبضة", price: 2000 }, { id: 502, name: "سموذي موز وليمون", price: 2000 }, { id: 503, name: "سموذي تفاح اخضر", price: 2000 }, { id: 504, name: "سموذي بلو بيري", price: 2000 }, { id: 505, name: "سموذي اناناس", price: 2000 }]},
-            { category: "الحلويات", items: [{ id: 301, name: "وافل مشكل", price: 3500 }, { id: 59, name: "وافل نوتيلا", price: 2500 }, { id: 60, name: "وافل لوتس", price: 2500 }, { id: 61, name: "وافل بستاشيو", price: 3000 }, { id: 601, name: "كيك شوكولاته دائري", price: 1500 }, { id: 602, name: "كيك فراوله دائري", price: 1500 }, { id: 63, name: "ترليجة كراميل", price: 1500 }, { id: 65, name: "كيك شوكولاتة", price: 1500 }]}
+            { category: "الحلويات", items: [{ id: 301, name: "وافل مشكل", price: 3000 }, { id: 59, name: "وافل نوتيلا", price: 2000 }, { id: 60, name: "وافل لوتس", price: 2000 }, { id: 61, name: "وافل بستاشيو", price: 2500 }, { id: 601, name: "كيك شوكولاته دائري", price: 1500 }, { id: 602, name: "كيك فراوله دائري", price: 1500 }, { id: 63, name: "ترليجة كراميل", price: 1500 }, { id: 65, name: "كيك شوكولاتة", price: 1500 }]}
         ];
 
         function renderMenu() {
