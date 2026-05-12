@@ -3,103 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mishwar Super App</title>
+    <title>Mishwar Super App | مشوار</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --purple: #5d3ebc; --yellow: #ffd200; --text: #333; --gray: #f3f3f6; }
-        body { font-family: 'Cairo', sans-serif; background: var(--gray); margin: 0; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
+        :root { --purple: #5d3ebc; --yellow: #ffd200; --bg: #f3f3f6; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
         
-        /* Adres ve Logo */
-        .top-nav { background: var(--purple); padding: 12px 15px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 1000; }
-        .logo { color: var(--yellow); font-weight: 800; font-size: 1.4rem; letter-spacing: 1px; }
-        .current-addr { background: white; padding: 10px 15px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid #eee; }
+        /* Navigasyon */
+        .header { background: var(--purple); padding: 15px; text-align: center; color: white; font-weight: bold; position: sticky; top: 0; z-index: 1000; }
+        .address-box { background: white; padding: 12px; font-size: 0.85rem; border-bottom: 1px solid #ddd; font-weight: bold; }
 
-        /* Arama ve Filtre */
-        .search-area { background: white; padding: 10px 15px; display: flex; gap: 10px; }
-        .search-box { background: var(--gray); flex-grow: 1; padding: 12px; border-radius: 12px; color: #999; font-size: 0.9rem; border: none; }
+        /* Restoran Kartları */
+        .res-list { padding: 15px; }
+        .res-card { background: white; border-radius: 18px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; }
+        .res-img { width: 100%; height: 160px; object-fit: cover; }
+        .res-info { padding: 15px; }
 
-        /* Getir Kategorileri */
-        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 15px; background: white; scrollbar-width: none; }
-        .cat-card { min-width: 75px; text-align: center; }
-        .cat-img-box { width: 65px; height: 65px; background: white; border-radius: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; }
-        .cat-img-box img { width: 45px; height: 45px; object-fit: contain; }
-        .cat-card span { font-size: 0.75rem; font-weight: 700; color: #555; }
+        /* Alttan Açılan Menü (Videodaki gibi) */
+        #menu-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 85%; background: white; z-index: 3000; transition: 0.4s; border-radius: 25px 25px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.2); overflow-y: auto; }
+        #menu-sheet.active { bottom: 0; }
+        .sheet-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; position: sticky; top: 0; background: white; border-radius: 25px 25px 0 0; }
 
-        /* Restoran Kartları (Videodaki Stil) */
-        .res-container { padding: 15px; }
-        .res-card { background: white; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; }
-        .res-img { width: 100%; height: 170px; object-fit: cover; }
-        .res-badge { position: absolute; top: 12px; right: 12px; background: white; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.75rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .res-content { padding: 15px; }
-        .res-name { font-size: 1rem; font-weight: 700; margin: 0; display: flex; justify-content: space-between; }
-        .res-rating { color: var(--purple); font-size: 0.85rem; }
-        .res-meta { color: #777; font-size: 0.8rem; margin-top: 5px; }
+        /* Ürün Satırı */
+        .product-row { display: flex; padding: 15px; border-bottom: 1px solid #f9f9f9; align-items: center; justify-content: space-between; }
+        .product-details { flex-grow: 1; }
+        .add-controls { display: flex; align-items: center; gap: 10px; border: 1px solid #ddd; border-radius: 10px; padding: 5px; }
+        .btn-qty { background: white; border: none; color: var(--purple); font-weight: bold; font-size: 1.2rem; width: 30px; cursor: pointer; }
 
-        /* Yüzen Alt Menü */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 2000; }
-        .nav-item { text-align: center; color: #bbb; font-size: 0.65rem; font-weight: bold; text-decoration: none; }
-        .nav-item.active { color: var(--purple); }
-        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
-        .center-btn { width: 60px; height: 60px; background: var(--purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: translateY(-15px); border: 5px solid var(--gray); box-shadow: 0 5px 15px rgba(93, 62, 188, 0.3); }
-
-        /* Sepet Uyarısı */
-        .min-order-alert { background: #fff3cd; color: #856404; padding: 10px; text-align: center; font-size: 0.8rem; font-weight: bold; position: fixed; bottom: 75px; width: 100%; z-index: 1500; display: none; }
+        /* Sepet Barı */
+        .cart-bar { position: fixed; bottom: 20px; left: 5%; width: 90%; background: var(--purple); color: white; padding: 15px; border-radius: 15px; display: none; justify-content: space-between; align-items: center; font-weight: bold; z-index: 4000; }
     </style>
 </head>
 <body>
 
-    <div class="top-nav">
-        <div class="logo">mishwar</div>
-    </div>
+<div class="header">Mishwar Basha 🚀</div>
+<div class="address-box">📍 <input type="text" id="user-addr" placeholder="أدخل عنوانك هنا (مطلوب)" style="border:none; width:80%; outline:none;"></div>
 
-    <div class="current-addr">
-        📍 <span>موصل، حي النضال، زقاق 7...</span>
+<div class="res-list">
+    <div class="res-card" onclick="openMenu('Beraka Kebap', [{n:'كباب نفر', p:12000}, {n:'تكة دجاج', p:10000}])">
+        <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500" class="res-img">
+        <div class="res-info"><b>بركة كباب</b><br><small>⭐ 5.0 • 20-30 دقيقة</small></div>
     </div>
-
-    <div class="search-area">
-        <div class="search-box">🔍 مالي الذي تبحث عنه، يا باشا؟</div>
+    <div class="res-card" onclick="openMenu('Nabdda Coffee', [{n:'كابتشينو', p:3500}, {n:'وافل نوتيلا', p:4000}])">
+        <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=500" class="res-img">
+        <div class="res-info"><b>Nabdda Coffee</b><br><small>⭐ 4.9 • 10-15 دقيقة</small></div>
     </div>
+</div>
 
-    <div class="categories">
-        <div class="cat-card"><div class="cat-img-box"><img src="https://cdn-icons-png.flaticon.com/512/3081/3081918.png"></div><span>ماركت</span></div>
-        <div class="cat-card"><div class="cat-img-box"><img src="https://cdn-icons-png.flaticon.com/512/706/706164.png"></div><span>كباب</span></div>
-        <div class="cat-card"><div class="cat-img-box"><img src="https://cdn-icons-png.flaticon.com/512/924/924514.png"></div><span>قهوة</span></div>
-        <div class="cat-card"><div class="cat-img-box"><img src="https://cdn-icons-png.flaticon.com/512/2674/2674068.png"></div><span>حلويات</span></div>
-        <div class="cat-card"><div class="cat-img-box"><img src="https://cdn-icons-png.flaticon.com/512/3014/3014361.png"></div><span>صيدلية</span></div>
+<div id="menu-sheet">
+    <div class="sheet-header">
+        <span id="shop-name" style="font-weight:bold;">اسم المحل</span>
+        <span onclick="closeMenu()" style="cursor:pointer; color:var(--purple); font-weight:bold;">إغلاق ✕</span>
     </div>
+    <div id="products-list"></div>
+</div>
 
-    <div class="res-container">
-        <div class="res-card">
-            <div class="res-badge">خصم 10% 🏷️</div>
-            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500" class="res-img">
-            <div class="res-content">
-                <div class="res-name">بركة كباب (الشيف باشا) <span class="res-rating">★ 5.0</span></div>
-                <div class="res-meta">🕒 20-30 دقيقة • توصيل مجاني</div>
+<div id="cart-bar" class="cart-bar">
+    <span id="total-price">0 د.ع</span>
+    <span onclick="sendOrder()">إرسال الطلب ></span>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
+        databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
+        projectId: "nabda-coffee"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let cart = {};
+    let currentShop = "";
+
+    function openMenu(name, items) {
+        currentShop = name;
+        document.getElementById('shop-name').innerText = name;
+        const list = document.getElementById('products-list');
+        list.innerHTML = items.map(item => `
+            <div class="product-row">
+                <div class="product-details">
+                    <b>${item.n}</b><br><small>${item.p} د.ع</small>
+                </div>
+                <div class="add-controls">
+                    <button class="btn-qty" onclick="changeQty('${item.n}', ${item.p}, -1)">-</button>
+                    <span id="qty-${item.n}">0</span>
+                    <button class="btn-qty" onclick="changeQty('${item.n}', ${item.p}, 1)">+</button>
+                </div>
             </div>
-        </div>
+        `).join('');
+        document.getElementById('menu-sheet').classList.add('active');
+    }
 
-        <div class="res-card">
-            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=500" class="res-img">
-            <div class="res-content">
-                <div class="res-name">Nabdda Coffee <span class="res-rating">★ 4.9</span></div>
-                <div class="res-meta">🕒 10-15 دقيقة • الحد الأدنى 5,000 د.ع</div>
-            </div>
-        </div>
-    </div>
+    function closeMenu() { document.getElementById('menu-sheet').classList.remove('active'); }
 
-    <div class="min-order-alert" id="min-alert">
-        يجب أن يكون مجموع الطلب 5,000 د.ع على الأقل!
-    </div>
+    function changeQty(name, price, delta) {
+        if (!cart[name]) cart[name] = { price, qty: 0 };
+        cart[name].qty = Math.max(0, cart[name].qty + delta);
+        document.getElementById(`qty-${name}`).innerText = cart[name].qty;
+        updateUI();
+    }
 
-    <div class="bottom-nav">
-        <a href="#" class="nav-item active"><i>🏠</i>الرئيسية</a>
-        <a href="#" class="nav-item"><i>🔍</i>بحث</a>
-        <div class="center-btn"><img src="https://cdn-icons-png.flaticon.com/512/60/60992.png" width="22" style="filter:invert(1);"></div>
-        <a href="#" class="nav-item"><i>👤</i>حسابي</a>
-        <a href="#" class="nav-item"><i>🎁</i>عروض</a>
-    </div>
+    function updateUI() {
+        let total = 0;
+        for (let k in cart) total += cart[k].price * cart[k].qty;
+        document.getElementById('total-price').innerText = total + " د.ع";
+        document.getElementById('cart-bar').style.display = total > 0 ? 'flex' : 'none';
+    }
 
+    function sendOrder() {
+        const addr = document.getElementById('user-addr').value;
+        if (!addr) { alert("يرجى إدخال العنوان أولاً Basha!"); return; }
+
+        let summary = Object.entries(cart).filter(e => e[1].qty > 0).map(e => `${e[0]} x${e[1].qty}`).join(", ");
+        db.ref('mishwar_orders').push({
+            shop: currentShop,
+            items: summary,
+            address: addr,
+            time: new Date().toLocaleTimeString('ar-IQ')
+        }).then(() => {
+            alert("تم إرسال طلبك بنجاح! 🚀");
+            cart = {}; updateUI(); closeMenu();
+        });
+    }
+</script>
 </body>
 </html>
