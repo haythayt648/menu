@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منيو نبضة كوفي</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #121212; color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 160px; }
+        .header { background: #1e1e1e; padding: 8px 15px; border-bottom: 2px solid #d35400; text-align: center; position: sticky; top: 0; z-index: 1000; }
+        .logo-text { font-size: 1.3em; font-weight: bold; color: #d35400; margin: 0 0 5px 0; }
+        .selection-container { display: flex; gap: 8px; justify-content: center; max-width: 500px; margin: 0 auto; }
+        .selection-box { background: #d35400; padding: 6px; border-radius: 10px; flex: 1; text-align: center; }
+        .box-label { font-size: 0.75em; color: #fff; display: block; margin-bottom: 2px; font-weight: bold; }
+        .admin-btn { background: #f1c40f; color: #000; border: none; padding: 6px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 0.9em; cursor: pointer; }
+        .admin-btn.active { background: #27ae60; color: #fff; border: 1px solid #fff; }
+        .masa-select { background: #fff; color: #000; border: none; padding: 6px; border-radius: 8px; font-weight: bold; width: 100%; text-align: center; font-size: 0.9em; }
+        .category-title { background: #2c3e50; padding: 10px 15px; margin-top: 20px; font-weight: bold; color: #f1c40f; border-right: 6px solid #d35400; font-size: 1.1em; }
+        .item-card { background: #1e1e1e; border: 1px solid #333; border-radius: 15px; margin: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .item-info { flex: 1; text-align: right; margin-right: 15px; }
+        .item-name { font-size: 1em; font-weight: bold; display: block; }
+        .item-price { color: #f1c40f; font-weight: bold; font-size: 0.9em; }
+        .qty-controls { display: flex; align-items: center; background: #333; border-radius: 30px; padding: 3px; }
+        .qty-btn { background: #d35400; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+        .qty-num { margin: 0 10px; font-weight: bold; font-size: 1.1em; min-width: 15px; text-align: center; }
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: #1e1e1e; border-top: 3px solid #27ae60; padding: 12px; display: none; z-index: 2000; }
+        .total-price { text-align: center; margin-bottom: 8px; font-size: 1.3em; color: #f1c40f; font-weight: bold; }
+        .order-btn { background: #27ae60; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 1.1em; font-weight: bold; width: 100%; cursor: pointer; }
+        #msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #27ae60; color: white; padding: 20px; border-radius: 15px; display: none; z-index: 3000; text-align: center; }
+        .last-order-info { background: #2c3e50; border: 1px dashed #f1c40f; border-radius: 8px; padding: 8px; margin-top: 8px; display: none; }
+        .order-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82em; color: #fff; gap: 8px; }
+        .countdown-timer { color: #e74c3c; font-size: 0.9em; font-weight: bold; min-width: 25px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="logo-text">نبضة كوفي ☕</h1>
+        <div class="selection-container">
+            <div class="selection-box">
+                <span class="box-label">قسم الإدارة</span>
+                <button id="admin-btn" class="admin-btn" onclick="askPassword()">الإدارة</button>
+            </div>
+            <div class="selection-box">
+                <span class="box-label">رقم المحل</span>
+                <select id="table-select" class="masa-select" onchange="setShop()"></select>
+            </div>
+        </div>
+    </div>
+    <div id="menu-content"></div>
+    <div class="cart-bar" id="cart-bar">
+        <div id="total-price-div">
+            <div class="total-price" id="total-display">0 د.ع</div>
+            <button id="send-btn" class="order-btn" onclick="sendOrder()">إرسال الطلب</button>
+        </div>
+        <div id="last-order-box" class="last-order-info">
+            <div class="order-row">
+                <span style="color:#f1c40f; font-weight:bold; white-space:nowrap;">الطلب الأخير:</span>
+                <div id="last-order-content" style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; color:#eee;"></div>
+                <div id="last-order-total-price" style="color:#27ae60; font-weight:bold; white-space:nowrap; border-right:1px solid #555; padding-right:8px;"></div>
+                <span id="countdown-timer" class="countdown-timer">60</span>
+            </div>
+        </div>
+    </div>
+    <div id="msg">تم إرسال الطلب بنجاح! ✅</div>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-7", databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com", projectId: "nabda-coffee", appId: "1:561770469999:web:f2be91da76" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let cart = {}, orderLocation = "", lastSent = "", timerInterval, countdownValue = 60;
+        const ADMIN_PASSWORD = "2020";
+
+        const select = document.getElementById('table-select');
+        // BURASI 80 YAPILDI
+        for (let i = 1; i <= 80; i++) {
+            const opt = document.createElement('option'); opt.value = `محل ${i}`; opt.innerText = `محل ${i}`; select.appendChild(opt);
+        }
+        orderLocation = select.value;
+
+        function askPassword() {
+            const pass = prompt("الرجاء إدخال كلمة المرور:");
+            if (pass === ADMIN_PASSWORD) setAdmin();
+            else if (pass !== null) alert("كلمة مرور خاطئة!");
+        }
+        function setAdmin() { orderLocation = "الإدارة"; document.getElementById('admin-btn').classList.add('active'); document.getElementById('table-select').style.opacity = "0.5"; }
+        function setShop() { orderLocation = select.value; document.getElementById('admin-btn').classList.remove('active'); document.getElementById('table-select').style.opacity = "1"; }
+
+        const menuData = [
+            { category: "المشروبات الأساسية", items: [{ id: 100, name: "شاي", price: 500 }, { id: 101, name: "ماء", price: 250 }]},
+            { category: "قسم القهوة", items: [{ id: 1, name: "قهوة جقليتية", price: 1000 }, { id: 2, name: "قهوة عربية", price: 1000 }, { id: 3, name: "قهوة تركية", price: 1000 }, { id: 300, name: "قهوة تركية وسط", price: 1000 }, { id: 4, name: "قهوة عثمانية", price: 1500 }, { id: 5, name: "نسكافيه", price: 1000 }, { id: 6, name: "نسكافيه بالحليب", price: 1500 }, { id: 7, name: "حليب", price: 1000 }]},
+            { category: "اسبريسو", items: [{ id: 8, name: "اسبريسو", price: 1000 }, { id: 9, name: "اسبريسو دبل", price: 1500 }, { id: 10, name: "اسبريسو ماكياتو", price: 1500 }]},
+            { category: "ايس كوفي", items: [{ id: 20, name: "ايس كوفي", price: 1500 }, { id: 21, name: "ايس لاتيه", price: 1500 }, { id: 22, name: "ايس موكا", price: 1500 }, { id: 23, name: "ايس كراميل موكا", price: 1500 }, { id: 24, name: "ايس نبضة", price: 2000 }]},
+            { category: "قسم المكسيكي (Mexican)", items: [{ id: 401, name: "مكسيكي ليمون", price: 2000 }, { id: 402, name: "مكسيكي رمان", price: 2000 }]},
+            { category: "قسم الموهيتو (Mojito)", items: [{ id: 403, name: "موهيتو ليمون", price: 2000 }, { id: 404, name: "موهيتو بلوبيري", price: 1500 }, { id: 405, name: "موهيتو فرولة", price: 1500 }, { id: 406, name: "موهيتو اناناس", price: 1500 }, { id: 407, name: "موهيتو مانجو", price: 1500 }]},
+            { category: "العصائر الطبيعية", items: [{ id: 200, name: "كوكتيل نبضة", price: 2000 }, { id: 32, name: "برتقال و ليمون", price: 2000 }, { id: 26, name: "عصير ليمون", price: 2000 }, { id: 33, name: "ليمون و نعناع", price: 2000 }, { id: 31, name: "عصير فراولة", price: 1500 }, { id: 27, name: "عصير برتقال", price: 1500 }, { id: 28, name: "عصير مانجو", price: 1500 }, { id: 201, name: "عصير خوخ", price: 1500 }, { id: 29, name: "عصير اناناس", price: 1500 }, { id: 30, name: "موز بالحليب", price: 1500 }]},
+            { category: "قسم السموذي (Smoothie)", items: [{ id: 501, name: "سموذي نبضة", price: 2000 }, { id: 502, name: "سموذي موز وليمون", price: 2000 }, { id: 503, name: "سموذي تفاح اخضر", price: 2000 }, { id: 504, name: "سموذي بلو بيري", price: 2000 }, { id: 505, name: "سموذي اناناس", price: 2000 }]},
+            { category: "الحلويات", items: [{ id: 301, name: "وافل مشكل", price: 3000 }, { id: 59, name: "وافل نوتيلا", price: 2000 }, { id: 60, name: "وافل لوتس", price: 2000 }, { id: 61, name: "وافل بستاشيو", price: 2500 }, { id: 601, name: "كيك شوكولاته دائري", price: 1500 }, { id: 602, name: "كيك فراوله دائري", price: 1500 }, { id: 63, name: "ترليجة كراميل", price: 1500 }, { id: 65, name: "كيك شوكولاتة", price: 1500 }]}
+        ];
+
+        function renderMenu() {
+            const container = document.getElementById('menu-content');
+            let fullHtml = "", total = 0;
+            menuData.forEach(cat => {
+                fullHtml += `<div class="category-title">${cat.category}</div>`;
+                cat.items.forEach(item => {
+                    const count = cart[item.id] || 0; total += count * item.price;
+                    fullHtml += `<div class="item-card"><div class="item-info"><span class="item-name">${item.name}</span><span class="item-price">${item.price.toLocaleString()} د.ع</span></div><div class="qty-controls"><button class="qty-btn" onclick="updateCart(${item.id}, 1)">+</button><span class="qty-num">${count}</span><button class="qty-btn" style="background:#555" onclick="updateCart(${item.id}, -1)">-</button></div></div>`;
+                });
+            });
+            container.innerHTML = fullHtml;
+            document.getElementById('cart-bar').style.display = (total > 0 || lastSent !== "") ? "block" : "none";
+            document.getElementById('total-display').innerText = `الإجمالي: ${total.toLocaleString()} د.ع`;
+            document.getElementById('total-price-div').style.display = total > 0 ? "block" : "none";
+        }
+
+        function updateCart(id, change) { cart[id] = (cart[id] || 0) + change; if (cart[id] <= 0) delete cart[id]; renderMenu(); }
+
+        function sendOrder() {
+            let summary = [], currentTotal = 0;
+            for (let id in cart) {
+                let item; menuData.forEach(c => { const found = c.items.find(x => x.id == id); if(found) item = found; });
+                summary.push(`${cart[id]}x ${item.name}`); currentTotal += (cart[id] * item.price);
+            }
+            const orderTxt = summary.join(", ");
+            db.ref('orders').push({ table: orderLocation, items: orderTxt, total: currentTotal, time: new Date().toLocaleTimeString('ar-IQ', {hour: '2-digit', minute:'2-digit'}) })
+            .then(() => {
+                lastSent = orderTxt;
+                document.getElementById('last-order-content').innerText = lastSent;
+                document.getElementById('last-order-total-price').innerText = currentTotal.toLocaleString() + " د.ع";
+                document.getElementById('last-order-box').style.display = "block";
+                startCountdown();
+                document.getElementById('msg').style.display = "block"; setTimeout(() => { document.getElementById('msg').style.display = "none"; }, 2000);
+                cart = {}; renderMenu();
+            });
+        }
+
+        function startCountdown() {
+            clearInterval(timerInterval);
+            countdownValue = 60;
+            const timerEl = document.getElementById('countdown-timer');
+            timerEl.innerText = countdownValue;
+            timerInterval = setInterval(() => {
+                countdownValue--;
+                timerEl.innerText = countdownValue;
+                if (countdownValue <= 0) {
+                    clearInterval(timerInterval);
+                    lastSent = "";
+                    document.getElementById('last-order-box').style.display = "none";
+                    renderMenu();
+                }
+            }, 1000);
+        }
+
+        renderMenu();
+    </script>
+</body>
+</html>
