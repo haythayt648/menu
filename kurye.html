@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mishwar Kurye | كابتن مشوار</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { background: #222; color: white; font-family: sans-serif; padding: 15px; }
+        .order-card { background: #333; border-radius: 15px; padding: 15px; margin-bottom: 15px; border-right: 5px solid #ff6b00; }
+        .status-btn { background: #ff6b00; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 10px; }
+        h2 { text-align: center; color: #ff6b00; }
+    </style>
+</head>
+<body>
+    <h2>لوحة الكابتن (Kurye Paneli) 🛵</h2>
+    <div id="kurye-orders">Siparişler yükleniyor Basha...</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
+            databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
+            projectId: "nabda-coffee"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        db.ref('mishwar_orders').on('value', snapshot => {
+            const list = document.getElementById('kurye-orders');
+            list.innerHTML = '';
+            snapshot.forEach(child => {
+                const order = child.val();
+                if(order.status === "waiting" || order.status === "on_way") {
+                    list.innerHTML += `
+                        <div class="order-card">
+                            <b>الزبون:</b> ${order.customer}<br>
+                            <b>المطعم:</b> ${order.restaurant}<br>
+                            <b>الطلب:</b> ${order.item}<br>
+                            <button class="status-btn" onclick="updateStatus('${child.key}')">تم التوصيل (Teslim Ettim)</button>
+                        </div>`;
+                }
+            });
+        });
+
+        function updateStatus(key) {
+            db.ref('mishwar_orders/' + key).update({status: "delivered"});
+            alert("Basha, teslimat tamam!");
+        }
+    </script>
+</body>
+</html>
