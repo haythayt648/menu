@@ -2,188 +2,227 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mishwar Pro | مشوار</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mishwar Super App</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        :root { --purple: #5d3ebc; --yellow: #ffd200; --bg: #f3f3f6; --white: #ffffff; --red: #ff3b30; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 90px; color: #333; }
+        :root { --p: #5d3ebc; --y: #ffd200; --bg: #f3f3f6; --w: #ffffff; --t: #333; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body, html { 
+            margin: 0; padding: 0; font-family: 'Cairo', sans-serif; 
+            background: var(--bg); color: var(--t); overflow: hidden; height: 100%;
+        }
 
-        /* HEADER */
-        .header { background: var(--purple); padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { color: var(--yellow); font-weight: 800; font-size: 1.6rem; }
+        /* Uygulama Konteynırı */
+        #app-container { height: 100vh; display: flex; flex-direction: column; }
 
-        /* ADDRESS & CATEGORIES */
-        .addr-section { background: white; padding: 12px 15px; border-bottom: 2px solid var(--purple); display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; }
-        .addr-section input { border: none; flex-grow: 1; font-family: inherit; color: var(--purple); }
-        .cats { background: white; display: flex; overflow-x: auto; padding: 15px; gap: 15px; scrollbar-width: none; border-bottom: 1px solid #eee; }
-        .cat-item { min-width: 75px; text-align: center; cursor: pointer; }
-        .cat-icon { width: 60px; height: 60px; background: var(--bg); border-radius: 18px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: 0.3s; }
-        .cat-item:hover .cat-icon { background: var(--yellow); }
-        .cat-item span { font-size: 0.75rem; font-weight: 800; }
+        /* Sayfa Alanı (Kaydırılabilir) */
+        .page-content { flex: 1; overflow-y: auto; display: none; padding-bottom: 100px; }
+        .page-content.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* RESTAURANT LIST */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Modern Header */
+        .app-header { background: var(--p); height: 60px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 100; }
+        .app-header .logo { color: var(--y); font-weight: 800; font-size: 1.5rem; letter-spacing: 1px; }
+
+        /* Adres Çubuğu */
+        .addr-box { background: var(--w); padding: 12px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--p); }
+        .addr-box input { border: none; outline: none; font-family: inherit; font-size: 0.85rem; flex: 1; color: var(--p); font-weight: 700; }
+
+        /* Kategori İkonları */
+        .cat-scroll { display: flex; overflow-x: auto; background: var(--w); padding: 15px; gap: 15px; scrollbar-width: none; }
+        .cat-card { min-width: 70px; text-align: center; }
+        .cat-icon { width: 60px; height: 60px; background: var(--bg); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 5px; border: 1px solid #eee; }
+        .cat-card span { font-size: 0.7rem; font-weight: 800; color: #666; }
+
+        /* Restoran Kartları */
         .res-list { padding: 15px; }
-        .res-card { background: white; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; cursor: pointer; }
-        .res-img { width: 100%; height: 180px; object-fit: cover; }
-        .res-badge { position: absolute; top: 15px; right: 15px; background: white; padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 0.7rem; color: var(--purple); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .res-card { background: var(--w); border-radius: 20px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .res-img { width: 100%; height: 170px; object-fit: cover; }
         .res-info { padding: 15px; }
-        .res-name { font-size: 1.1rem; font-weight: 800; display: flex; justify-content: space-between; }
-        .res-meta { font-size: 0.8rem; color: #777; margin-top: 5px; font-weight: 600; }
+        .res-name { font-weight: 800; font-size: 1.1rem; display: flex; justify-content: space-between; }
+        .res-sub { font-size: 0.8rem; color: #888; font-weight: 600; margin-top: 4px; }
 
-        /* MENU SHEET (SLIDE UP) */
-        #menu-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 85%; background: white; z-index: 2000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); overflow-y: auto; }
-        #menu-sheet.active { bottom: 0; }
-        .sheet-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 100; border-radius: 30px 30px 0 0; }
-        .product-item { padding: 20px; border-bottom: 1px solid #f9f9f9; }
-        .p-top { display: flex; justify-content: space-between; align-items: center; }
-        .p-name { font-weight: 800; font-size: 1rem; }
-        .p-price { color: var(--purple); font-weight: 800; }
-        .p-ctrl { display: flex; align-items: center; gap: 12px; background: white; border: 1px solid #eee; padding: 5px 12px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .math-btn { border: none; background: none; color: var(--purple); font-size: 1.4rem; font-weight: 800; cursor: pointer; width: 30px; }
-        .qty { color: var(--purple); font-weight: 800; min-width: 20px; text-align: center; }
-        .p-note { width: 100%; margin-top: 10px; padding: 10px; border-radius: 8px; border: 1px solid #eee; font-family: inherit; font-size: 0.85rem; display: none; }
+        /* Alt Navigasyon (Gerçek Uygulama) */
+        .bottom-nav { 
+            background: var(--w); height: 80px; display: flex; 
+            justify-content: space-around; align-items: center; 
+            border-top: 1px solid #eee; position: fixed; bottom: 0; width: 100%; z-index: 1000;
+        }
+        .nav-item { text-align: center; color: #bbb; cursor: pointer; flex: 1; transition: 0.2s; }
+        .nav-item.active { color: var(--p); }
+        .nav-item div { font-size: 1.5rem; margin-bottom: 2px; }
+        .nav-item span { font-size: 0.7rem; font-weight: 800; }
 
-        /* FOOTER NAV & CART */
-        .cart-bar { position: fixed; bottom: 85px; left: 5%; width: 90%; background: var(--purple); color: white; padding: 18px; border-radius: 18px; display: none; justify-content: space-between; align-items: center; font-weight: 800; z-index: 3000; box-shadow: 0 10px 30px rgba(93, 62, 188, 0.4); cursor: pointer; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 1500; }
-        .nav-link { text-align: center; color: #bbb; text-decoration: none; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
-        .nav-link.active { color: var(--purple); }
-        .nav-link span { display: block; margin-bottom: 3px; font-size: 1.5rem; }
+        /* Sepet Barı */
+        .cart-pop { 
+            position: fixed; bottom: 95px; left: 5%; width: 90%; 
+            background: var(--p); color: var(--w); padding: 18px; 
+            border-radius: 18px; display: none; justify-content: space-between; 
+            font-weight: 800; box-shadow: 0 10px 25px rgba(93,62,188,0.4); z-index: 900;
+        }
+
+        /* Menü Paneli (Slide-Up) */
+        #menu-panel { 
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 85%; 
+            background: var(--w); z-index: 2000; border-radius: 30px 30px 0 0; 
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; padding-bottom: 50px;
+        }
+        #menu-panel.active { bottom: 0; }
+        .panel-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; position: sticky; top: 0; background: var(--w); z-index: 10; }
+
+        /* Ürün ve Not */
+        .p-row { padding: 20px; border-bottom: 1px solid #f9f9f9; }
+        .p-flex { display: flex; justify-content: space-between; align-items: center; }
+        .qty-box { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #eee; padding: 5px 12px; border-radius: 12px; }
+        .q-btn { border: none; background: none; color: var(--p); font-size: 1.4rem; font-weight: 800; cursor: pointer; }
+        .p-note { width: 100%; margin-top: 12px; padding: 10px; border-radius: 10px; border: 1px solid #eee; font-family: inherit; font-size: 0.8rem; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="header"><div class="logo">mishwar</div></div>
-    <div class="addr-section">📍 <input type="text" id="user-addr" placeholder="أدخل عنوان التوصيل يا باشا (مطلوب)..."></div>
+<div id="app-container">
+    <div class="app-header"><div class="logo">mishwar</div></div>
 
-    <div class="cats" id="cats-bar">
-        <div class="cat-item">
-            <div class="cat-icon">🍔</div><span>مطاعم</span>
+    <div id="home" class="page-content active">
+        <div class="addr-box">📍 <input type="text" id="cust-addr" placeholder="أدخل عنوان التوصيل هنا..."></div>
+        <div class="cat-scroll">
+            <div class="cat-card"><div class="cat-icon">🌯</div><span>مطاعم</span></div>
+            <div class="cat-card"><div class="cat-icon">☕</div><span>كافيهات</span></div>
+            <div class="cat-card"><div class="cat-icon">🛒</div><span>ماركت</span></div>
+            <div class="cat-card"><div class="cat-icon">💊</div><span>صيدلية</span></div>
         </div>
-        <div class="cat-item">
-            <div class="cat-icon">☕</div><span>كافيهات</span>
-        </div>
-        <div class="cat-item">
-            <div class="cat-icon">🛒</div><span>ماركت</span>
-        </div>
-        <div class="cat-item">
-            <div class="cat-icon">💊</div><span>صيدليات</span>
-        </div>
-    </div>
-
-    <div class="res-list">
-        <div class="res-card" onclick="openShop('بركة كباب', [{n:'كباب عراقي نفر', p:12000}, {n:'تكة دجاج', p:10000}, {n:'كفتة مشوية', p:11500}])">
-            <div class="res-badge">توصيل مجاني ✨</div>
-            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600" class="res-img">
-            <div class="res-info">
-                <div class="res-name">بركة كباب (الشيف باشا) <span>★ 5.0</span></div>
-                <div class="res-meta">🕒 20-30 دقيقة • الحد الأدنى 5,000 د.ع</div>
-            </div>
-        </div>
-        <div class="res-card" onclick="openShop('Nabdda Coffee', [{n:'كابتشينو', p:3500}, {n:'وافل نوتيلا', p:5000}, {n:'سبانش لاتيه', p:4500}])">
-            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=600" class="res-img">
-            <div class="res-info">
-                <div class="res-name">Nabdda Coffee <span>★ 4.9</span></div>
-                <div class="res-meta">🕒 10-15 دقيقة • الحد الأدنى 3,000 د.ع</div>
+        <div class="res-list">
+            <div class="res-card" onclick="openMenu('بركة كباب', [{n:'كباب عراقي', p:12000}, {n:'تكة دجاج', p:10000}])">
+                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600" class="res-img">
+                <div class="res-info">
+                    <div class="res-name">بركة كباب (الشيف باشا) <span>★ 5.0</span></div>
+                    <div class="res-sub">🕒 20-30 دقيقة • الحد الأدنى 5,000 د.ع</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="menu-sheet">
-        <div class="sheet-header">
-            <span id="shop-title" style="font-weight: 800; font-size: 1.2rem;">القائمة</span>
-            <span onclick="closeShop()" style="cursor:pointer; color:var(--purple); font-weight:800;">إغلاق ✕</span>
+    <div id="search" class="page-content">
+        <div style="padding: 20px;">
+            <input type="text" placeholder="ماذا تريد أن تأكل اليوم؟" style="width:100%; padding:18px; border-radius:15px; border:1px solid #ddd; font-family:inherit;">
         </div>
-        <div id="p-container"></div>
     </div>
 
-    <div id="cart-footer" class="cart-bar" onclick="sendOrder()">
-        <span id="total-val">0 د.ع</span>
-        <span>تأكيد الطلب ➔</span>
+    <div id="profile" class="page-content">
+        <div style="text-align:center; padding:50px 20px;">
+            <div style="width:80px; height:80px; background:var(--p); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem;">👤</div>
+            <h2 style="font-weight:800;">أهلاً بك يا باشا</h2>
+            <p style="color:#777;">سجل طلباتك، عناوينك، وإعدادات حسابك</p>
+        </div>
+    </div>
+
+    <div id="offers" class="page-content">
+        <div style="padding:30px; text-align:center; color:#888;">
+            🎁 لا توجد عروض حالياً، انتظرنا قريباً!
+        </div>
     </div>
 
     <div class="bottom-nav">
-        <a class="nav-link active" onclick="alert('أنت في الرئيسية')"><span>🏠</span>الرئيسية</a>
-        <a class="nav-link" onclick="alert('البحث قادم قريباً')"><span>🔍</span>بحث</a>
-        <a class="nav-link" style="font-size: 2.2rem; color: var(--purple); font-weight: normal;" onclick="alert('وظيفة الإضافة قادمة')">⊕</a>
-        <a class="nav-link" onclick="alert('الملف الشخصي')"><span>👤</span>حسابي</a>
-        <a class="nav-link" onclick="alert('قسم العروض')"><span>🎁</span>عروض</a>
+        <div class="nav-item active" onclick="nav('home', this)"><div>🏠</div><span>الرئيسية</span></div>
+        <div class="nav-item" onclick="nav('search', this)"><div>🔍</div><span>بحث</span></div>
+        <div class="nav-item" style="color:var(--p); font-size:2rem;">⊕</div>
+        <div class="nav-item" onclick="nav('profile', this)"><div>👤</div><span>حسابي</span></div>
+        <div class="nav-item" onclick="nav('offers', this)"><div>🎁</div><span>عروض</span></div>
     </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
-            databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
-            projectId: "nabda-coffee"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <div id="main-cart" class="cart-pop" onclick="checkout()">
+        <span id="total-price">0 د.ع</span>
+        <span>إتمام الطلب ➔</span>
+    </div>
+</div>
 
-        let cart = {};
-        let activeShop = "";
+<div id="menu-panel">
+    <div class="panel-header">
+        <span id="active-res" style="font-weight:800; font-size:1.2rem;">القائمة</span>
+        <span onclick="closeMenu()" style="cursor:pointer; color:var(--p); font-weight:800;">إغلاق ✕</span>
+    </div>
+    <div id="p-list"></div>
+</div>
 
-        function openShop(name, products) {
-            activeShop = name;
-            document.getElementById('shop-title').innerText = name;
-            const container = document.getElementById('p-container');
-            container.innerHTML = products.map(i => `
-                <div class="product-item">
-                    <div class="p-top">
-                        <div class="p-text">
-                            <div class="p-name">${i.n}</div>
-                            <div class="p-price">${i.p.toLocaleString()} د.ع</div>
-                        </div>
-                        <div class="p-ctrl">
-                            <button class="math-btn" onclick="updateQty('${i.n}', ${i.p}, -1)">-</button>
-                            <span class="qty" id="q-${i.n}">${cart[i.n]?.qty || 0}</span>
-                            <button class="math-btn" onclick="updateQty('${i.n}', ${i.p}, 1)">+</button>
-                        </div>
+<script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
+        databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
+        projectId: "nabda-coffee"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let cart = {};
+    let shop = "";
+
+    // 1. GERÇEK SAYFA GEÇİŞİ (Native Uygulama Gibi)
+    function nav(id, el) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    // 2. PROFESYONEL MENÜ AÇILIŞI
+    function openMenu(name, items) {
+        shop = name;
+        document.getElementById('active-res').innerText = name;
+        const list = document.getElementById('p-list');
+        list.innerHTML = items.map(i => `
+            <div class="p-row">
+                <div class="p-flex">
+                    <div><b>${i.n}</b><br><span style="color:var(--p); font-weight:800;">${i.p.toLocaleString()} د.ع</span></div>
+                    <div class="qty-box">
+                        <button class="q-btn" onclick="updateQty('${i.n}', ${i.p}, -1)">-</button>
+                        <span id="qty-${i.n}">${cart[i.n]?.q || 0}</span>
+                        <button class="q-btn" onclick="updateQty('${i.n}', ${i.p}, 1)">+</button>
                     </div>
-                    <textarea class="p-note" id="note-${i.n}" placeholder="أضف ملاحظاتك (بدون بصل مثلاً)..." style="display:${cart[i.n]?.qty > 0 ? 'block' : 'none'}"></textarea>
                 </div>
-            `).join('');
-            document.getElementById('menu-sheet').classList.add('active');
-        }
+                <textarea id="note-${i.n}" class="p-note" placeholder="أضف ملاحظاتك هنا..." oninput="cart['${i.n}'].note=this.value" style="display:${cart[i.n]?.q > 0 ? 'block' : 'none'}">${cart[i.n]?.note || ''}</textarea>
+            </div>
+        `).join('');
+        document.getElementById('menu-panel').classList.add('active');
+    }
 
-        function closeShop() { document.getElementById('menu-sheet').classList.remove('active'); }
+    function closeMenu() { document.getElementById('menu-panel').classList.remove('active'); }
 
-        function updateQty(name, price, change) {
-            if (!cart[name]) cart[name] = { price, qty: 0 };
-            cart[name].qty = Math.max(0, cart[name].qty + change);
-            document.getElementById(`q-${name}`).innerText = cart[name].qty;
-            document.getElementById(`note-${name}`).style.display = cart[name].qty > 0 ? 'block' : 'none';
-            
-            let total = 0;
-            for (let k in cart) total += cart[k].price * cart[k].qty;
-            document.getElementById('total-val').innerText = total.toLocaleString() + " د.ع";
-            document.getElementById('cart-footer').style.display = total > 0 ? 'flex' : 'none';
-        }
+    // 3. SEPET VE FİYAT HESAPLAMA
+    function updateQty(n, p, d) {
+        if(!cart[n]) cart[n] = { p, q: 0, note: "" };
+        cart[n].q = Math.max(0, cart[n].q + d);
+        document.getElementById('qty-'+n).innerText = cart[n].q;
+        document.getElementById('note-'+n).style.display = cart[n].q > 0 ? 'block' : 'none';
+        
+        let total = 0;
+        for(let key in cart) total += cart[key].p * cart[key].q;
+        document.getElementById('total-price').innerText = total.toLocaleString() + " د.ع";
+        document.getElementById('main-cart').style.display = total > 0 ? 'flex' : 'none';
+    }
 
-        function sendOrder() {
-            const addr = document.getElementById('user-addr').value;
-            if (!addr) { alert("Basha! العنوان مطلوب."); return; }
+    // 4. SIFIR HATA SİPARİŞ GÖNDERİMİ
+    function checkout() {
+        const addr = document.getElementById('cust-addr').value;
+        if(!addr) { alert("Basha! يرجى إدخال العنوان أولاً."); return; }
 
-            let items = Object.entries(cart).filter(x => x[1].qty > 0).map(x => {
-                const note = document.getElementById(`note-${x[0]}`).value;
-                return `${x[0]} (x${x[1].qty}) ${note ? '[Müşteri Notu: ' + note + ']' : ''}`;
-            }).join(" | ");
+        let itemsArr = Object.entries(cart).filter(c => c[1].q > 0).map(c => `${c[0]} (x${c[1].q}) [${c[1].note}]`).join(" | ");
 
-            db.ref('mishwar_orders').push({
-                shop: activeShop,
-                items: items,
-                address: addr,
-                total: document.getElementById('total-val').innerText,
-                status: "جديد",
-                time: new Date().toLocaleString('ar-IQ')
-            }).then(() => {
-                alert("تم إرسال طلبك بنجاح! 🚀🔥");
-                location.reload();
-            });
-        }
-    </script>
+        db.ref('orders').push({
+            shop, items: itemsArr, address: addr, total: document.getElementById('total-price').innerText, status: "جديد", time: new Date().toLocaleString('ar-IQ')
+        }).then(() => {
+            alert("تم إرسال الطلب بنجاح! 🚀");
+            location.reload();
+        });
+    }
+</script>
 </body>
 </html>
