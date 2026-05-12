@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basha Panel | لوحة الباشا</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { background: #f0f2f5; font-family: sans-serif; padding: 15px; margin: 0; }
+        .admin-header { background: #333; color: white; padding: 20px; text-align: center; border-bottom: 5px solid #ff6b00; margin-bottom: 20px; }
+        .order-row { background: white; margin-bottom: 15px; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85em; color: white; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .waiting { background: #dc3545; } /* Bekliyor */
+        .delivered { background: #28a745; } /* Teslim edildi */
+        .info { color: #555; font-size: 0.95em; line-height: 1.6; }
+        .rest-tag { color: #ff6b00; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>لوحة تحكم الباشا 👑</h1>
+        <p>Mishwar Express - Ana Yönetim Merkezi</p>
+    </div>
+    
+    <div id="admin-list">Siparişler kontrol ediliyor Basha...</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
+            databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
+            projectId: "nabda-coffee"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Siparişleri anlık dinle
+        db.ref('mishwar_orders').on('value', snapshot => {
+            const list = document.getElementById('admin-list');
+            list.innerHTML = '';
+            
+            if(!snapshot.exists()) {
+                list.innerHTML = "<p style='text-align:center;'>Henüz sipariş yok Basha.</p>";
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const order = child.val();
+                const statusText = order.status === 'waiting' ? 'جاري الانتظار' : 'تم التوصيل ✔️';
+                const statusClass = order.status === 'waiting' ? 'waiting' : 'delivered';
+
+                list.innerHTML += `
+                    <div class="order-row">
+                        <div class="info">
+                            <span class="rest-tag">[${order.restaurant}]</span><br>
+                            <b>الزبون:</b> ${order.customer}<br>
+                            <b>الهاتف:</b> ${order.phone}<br>
+                            <b>الطلب:</b> ${order.item}<br>
+                            <small>الوقت: ${order.time || 'Bilinmiyor'}</small>
+                        </div>
+                        <span class="badge ${statusClass}">${statusText}</span>
+                    </div>`;
+            });
+        });
+    </script>
+</body>
+</html>
