@@ -3,133 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mishwar Super App | مشوار</title>
+    <title>Mishwar Pro | مشوار</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --purple: #5d3ebc; --yellow: #ffd200; --bg: #f3f3f6; --white: #ffffff; --red: #ff3b30; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: #333; overflow-x: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); padding-bottom: 90px; color: #333; }
 
         /* HEADER */
-        .header { background: var(--purple); padding: 15px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { color: var(--yellow); font-weight: 800; font-size: 1.6rem; letter-spacing: 1px; }
+        .header { background: var(--purple); padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { color: var(--yellow); font-weight: 800; font-size: 1.6rem; }
 
-        /* ADDRESS BAR */
-        .address-bar { background: var(--white); padding: 12px 15px; border-bottom: 2px solid var(--purple); display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 700; color: var(--purple); }
-        .address-bar input { border: none; flex-grow: 1; font-family: inherit; font-size: 0.85rem; background: transparent; }
-
-        /* CATEGORY SLIDER */
-        .cats { background: var(--white); display: flex; overflow-x: auto; padding: 15px; gap: 15px; scrollbar-width: none; border-bottom: 1px solid #eee; }
+        /* ADDRESS & CATEGORIES */
+        .addr-section { background: white; padding: 12px 15px; border-bottom: 2px solid var(--purple); display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; }
+        .addr-section input { border: none; flex-grow: 1; font-family: inherit; color: var(--purple); }
+        .cats { background: white; display: flex; overflow-x: auto; padding: 15px; gap: 15px; scrollbar-width: none; border-bottom: 1px solid #eee; }
         .cat-item { min-width: 75px; text-align: center; cursor: pointer; }
-        .cat-icon { width: 65px; height: 65px; background: var(--bg); border-radius: 20px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; transition: 0.3s; border: 1px solid #eee; }
-        .cat-item:hover .cat-icon { border-color: var(--purple); background: #f0edff; }
-        .cat-item span { font-size: 0.75rem; font-weight: 800; color: #555; }
+        .cat-icon { width: 60px; height: 60px; background: var(--bg); border-radius: 18px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: 0.3s; }
+        .cat-item:hover .cat-icon { background: var(--yellow); }
+        .cat-item span { font-size: 0.75rem; font-weight: 800; }
 
         /* RESTAURANT LIST */
         .res-list { padding: 15px; }
-        .res-card { background: var(--white); border-radius: 22px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); cursor: pointer; position: relative; transition: transform 0.2s; }
-        .res-card:active { transform: scale(0.98); }
-        .res-img { width: 100%; height: 190px; object-fit: cover; }
-        .res-badge { position: absolute; top: 15px; right: 15px; background: var(--white); padding: 6px 14px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; color: var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .res-content { padding: 18px; }
-        .res-name { font-size: 1.15rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .res-rating { color: var(--purple); font-size: 0.9rem; background: #f0edff; padding: 2px 8px; border-radius: 6px; }
-        .res-sub { font-size: 0.8rem; color: #777; font-weight: 600; }
+        .res-card { background: white; border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; cursor: pointer; }
+        .res-img { width: 100%; height: 180px; object-fit: cover; }
+        .res-badge { position: absolute; top: 15px; right: 15px; background: white; padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 0.7rem; color: var(--purple); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .res-info { padding: 15px; }
+        .res-name { font-size: 1.1rem; font-weight: 800; display: flex; justify-content: space-between; }
+        .res-meta { font-size: 0.8rem; color: #777; margin-top: 5px; font-weight: 600; }
 
-        /* SLIDE-UP MENU PANEL */
-        #menu-panel { position: fixed; bottom: -100%; left: 0; width: 100%; height: 88%; background: var(--white); z-index: 2000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); border-radius: 30px 30px 0 0; box-shadow: 0 -15px 40px rgba(0,0,0,0.25); overflow-y: auto; }
-        #menu-panel.active { bottom: 0; }
-        .panel-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--white); z-index: 100; border-radius: 30px 30px 0 0; }
-        .panel-title { font-weight: 800; font-size: 1.2rem; }
-        .close-btn { color: var(--purple); font-weight: 800; cursor: pointer; padding: 5px 10px; font-size: 1.3rem; }
+        /* MENU SHEET (SLIDE UP) */
+        #menu-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 85%; background: white; z-index: 2000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); overflow-y: auto; }
+        #menu-sheet.active { bottom: 0; }
+        .sheet-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 100; border-radius: 30px 30px 0 0; }
+        .product-item { padding: 20px; border-bottom: 1px solid #f9f9f9; }
+        .p-top { display: flex; justify-content: space-between; align-items: center; }
+        .p-name { font-weight: 800; font-size: 1rem; }
+        .p-price { color: var(--purple); font-weight: 800; }
+        .p-ctrl { display: flex; align-items: center; gap: 12px; background: white; border: 1px solid #eee; padding: 5px 12px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .math-btn { border: none; background: none; color: var(--purple); font-size: 1.4rem; font-weight: 800; cursor: pointer; width: 30px; }
+        .qty { color: var(--purple); font-weight: 800; min-width: 20px; text-align: center; }
+        .p-note { width: 100%; margin-top: 10px; padding: 10px; border-radius: 8px; border: 1px solid #eee; font-family: inherit; font-size: 0.85rem; display: none; }
 
-        /* PRODUCTS IN MENU */
-        .product-item { display: flex; flex-direction: column; padding: 20px; border-bottom: 1px solid #f8f8f8; }
-        .p-main { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .p-text { flex-grow: 1; }
-        .p-name { font-weight: 800; font-size: 1.05rem; margin-bottom: 5px; }
-        .p-price { color: var(--purple); font-weight: 800; font-size: 1rem; }
-        .p-note { width: 100%; margin-top: 15px; padding: 10px; border-radius: 12px; border: 1px solid #eee; font-family: inherit; font-size: 0.85rem; background: #fdfdfd; display: none; }
-        
-        /* QUANTITY CONTROLS */
-        .p-controls { display: flex; align-items: center; gap: 15px; background: var(--white); border: 1px solid #eee; padding: 6px 14px; border-radius: 14px; box-shadow: 0 4px 8px rgba(0,0,0,0.06); }
-        .math-btn { border: none; background: none; color: var(--purple); font-size: 1.6rem; font-weight: 800; cursor: pointer; width: 30px; }
-        .qty-val { color: var(--purple); font-weight: 800; min-width: 25px; text-align: center; font-size: 1.1rem; }
-
-        /* FOOTER CART BAR */
-        .cart-footer { position: fixed; bottom: 25px; left: 5%; width: 90%; background: var(--purple); color: var(--white); padding: 20px; border-radius: 20px; display: none; justify-content: space-between; align-items: center; font-weight: 800; z-index: 3000; box-shadow: 0 12px 30px rgba(93, 62, 188, 0.4); cursor: pointer; transition: 0.3s; }
-        .cart-footer:active { transform: scale(0.96); }
-        .min-order-warn { background: var(--red); color: white; padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 800; position: fixed; bottom: 105px; width: 100%; display: none; z-index: 2900; }
-
-        /* BOTTOM TAB NAV */
-        .tab-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 1500; }
-        .tab-item { text-align: center; color: #ccc; text-decoration: none; font-size: 0.75rem; font-weight: 800; }
-        .tab-item.active { color: var(--purple); }
-        .tab-item i { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+        /* FOOTER NAV & CART */
+        .cart-bar { position: fixed; bottom: 85px; left: 5%; width: 90%; background: var(--purple); color: white; padding: 18px; border-radius: 18px; display: none; justify-content: space-between; align-items: center; font-weight: 800; z-index: 3000; box-shadow: 0 10px 30px rgba(93, 62, 188, 0.4); cursor: pointer; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 1500; }
+        .nav-link { text-align: center; color: #bbb; text-decoration: none; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
+        .nav-link.active { color: var(--purple); }
+        .nav-link span { display: block; margin-bottom: 3px; font-size: 1.5rem; }
     </style>
 </head>
 <body>
 
     <div class="header"><div class="logo">mishwar</div></div>
+    <div class="addr-section">📍 <input type="text" id="user-addr" placeholder="أدخل عنوان التوصيل يا باشا (مطلوب)..."></div>
 
-    <div class="address-bar">
-        📍 <input type="text" id="delivery-address" placeholder="أدخل عنوانك بدقة لتوصيل أسرع (مطلوب)...">
-    </div>
-
-    <div class="cats">
-        <div class="cat-item"><div class="cat-icon">🍔</div><span>مطاعم</span></div>
-        <div class="cat-item"><div class="cat-icon">☕</div><span>كافيهات</span></div>
-        <div class="cat-item"><div class="cat-icon">🏥</div><span>مستشفيات</span></div>
-        <div class="cat-item"><div class="cat-icon">💊</div><span>صيدليات</span></div>
-        <div class="cat-item"><div class="cat-icon">🛒</div><span>ماركت</span></div>
+    <div class="cats" id="cats-bar">
+        <div class="cat-item">
+            <div class="cat-icon">🍔</div><span>مطاعم</span>
+        </div>
+        <div class="cat-item">
+            <div class="cat-icon">☕</div><span>كافيهات</span>
+        </div>
+        <div class="cat-item">
+            <div class="cat-icon">🛒</div><span>ماركت</span>
+        </div>
+        <div class="cat-item">
+            <div class="cat-icon">💊</div><span>صيدليات</span>
+        </div>
     </div>
 
     <div class="res-list">
-        <div class="res-card" onclick="showShop('بركة كباب', [{n:'كباب عراقي نفر', p:12000}, {n:'تكة دجاج شواء', p:10000}, {n:'كفتة مشوية', p:11500}, {n:'ماعون مقبلات مشكل', p:5000}])">
-            <div class="res-badge">توصيل مجاني 🛵</div>
-            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800" class="res-img">
-            <div class="res-content">
-                <div class="res-name">بركة كباب (الشيف باشا) <span class="res-rating">★ 5.0</span></div>
-                <div class="res-sub">🕒 20-30 دقيقة • الحد الأدنى 5,000 د.ع</div>
+        <div class="res-card" onclick="openShop('بركة كباب', [{n:'كباب عراقي نفر', p:12000}, {n:'تكة دجاج', p:10000}, {n:'كفتة مشوية', p:11500}])">
+            <div class="res-badge">توصيل مجاني ✨</div>
+            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600" class="res-img">
+            <div class="res-info">
+                <div class="res-name">بركة كباب (الشيف باشا) <span>★ 5.0</span></div>
+                <div class="res-meta">🕒 20-30 دقيقة • الحد الأدنى 5,000 د.ع</div>
             </div>
         </div>
-
-        <div class="res-card" onclick="showShop('Nabdda Coffee', [{n:'كابتشينو إيطالي', p:3500}, {n:'وافل نوتيلا ملكي', p:5000}, {n:'سبانش لاتيه بارد', p:4500}, {n:'كريب فواكه', p:6000}])">
-            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=800" class="res-img">
-            <div class="res-content">
-                <div class="res-name">Nabdda Coffee <span class="res-rating">★ 4.9</span></div>
-                <div class="res-sub">🕒 10-15 دقيقة • الحد الأدنى 3,000 د.ع</div>
+        <div class="res-card" onclick="openShop('Nabdda Coffee', [{n:'كابتشينو', p:3500}, {n:'وافل نوتيلا', p:5000}, {n:'سبانش لاتيه', p:4500}])">
+            <img src="https://images.unsplash.com/photo-1501339817302-ec44d142b11a?w=600" class="res-img">
+            <div class="res-info">
+                <div class="res-name">Nabdda Coffee <span>★ 4.9</span></div>
+                <div class="res-meta">🕒 10-15 دقيقة • الحد الأدنى 3,000 د.ع</div>
             </div>
         </div>
     </div>
 
-    <div id="menu-panel">
-        <div class="panel-header">
-            <span id="active-shop-name" class="panel-title">القائمة</span>
-            <span class="close-btn" onclick="hideShop()">إغلاق ✕</span>
+    <div id="menu-sheet">
+        <div class="sheet-header">
+            <span id="shop-title" style="font-weight: 800; font-size: 1.2rem;">القائمة</span>
+            <span onclick="closeShop()" style="cursor:pointer; color:var(--purple); font-weight:800;">إغلاق ✕</span>
         </div>
-        <div id="product-container"></div>
+        <div id="p-container"></div>
     </div>
 
-    <div id="order-warning" class="min-order-warn">باقي لك <span id="remain-amt">0</span> د.ع للوصول للحد الأدنى!</div>
-
-    <div id="main-cart-bar" class="cart-footer" onclick="confirmOrder()">
-        <span id="final-total">0 د.ع</span>
-        <span>تثبيت الطلب الآن ➔</span>
+    <div id="cart-footer" class="cart-bar" onclick="sendOrder()">
+        <span id="total-val">0 د.ع</span>
+        <span>تأكيد الطلب ➔</span>
     </div>
 
-    <div class="tab-nav">
-        <a href="#" class="tab-item active"><i>🏠</i>الرئيسية</a>
-        <a href="#" class="tab-item"><i>🔍</i>بحث</a>
-        <a href="#" style="font-size: 2.5rem; color: var(--purple); text-decoration: none; margin-bottom: 10px;">⊕</a>
-        <a href="#" class="tab-item"><i>👤</i>حسابي</a>
-        <a href="#" class="tab-item"><i>🎁</i>عروض</a>
+    <div class="bottom-nav">
+        <a class="nav-link active" onclick="alert('أنت في الرئيسية')"><span>🏠</span>الرئيسية</a>
+        <a class="nav-link" onclick="alert('البحث قادم قريباً')"><span>🔍</span>بحث</a>
+        <a class="nav-link" style="font-size: 2.2rem; color: var(--purple); font-weight: normal;" onclick="alert('وظيفة الإضافة قادمة')">⊕</a>
+        <a class="nav-link" onclick="alert('الملف الشخصي')"><span>👤</span>حسابي</a>
+        <a class="nav-link" onclick="alert('قسم العروض')"><span>🎁</span>عروض</a>
     </div>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
             databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
@@ -138,104 +123,65 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentCart = {};
-        let currentShopName = "";
-        const MIN_LIMIT = 5000; // Getir tarzı alt limit
+        let cart = {};
+        let activeShop = "";
 
-        function showShop(name, products) {
-            currentShopName = name;
-            document.getElementById('active-shop-name').innerText = name;
-            const container = document.getElementById('product-container');
-            
-            container.innerHTML = products.map(p => `
+        function openShop(name, products) {
+            activeShop = name;
+            document.getElementById('shop-title').innerText = name;
+            const container = document.getElementById('p-container');
+            container.innerHTML = products.map(i => `
                 <div class="product-item">
-                    <div class="p-main">
+                    <div class="p-top">
                         <div class="p-text">
-                            <div class="p-name">${p.n}</div>
-                            <div class="p-price">${p.p.toLocaleString()} د.ع</div>
+                            <div class="p-name">${i.n}</div>
+                            <div class="p-price">${i.p.toLocaleString()} د.ع</div>
                         </div>
-                        <div class="p-controls">
-                            <button class="math-btn" onclick="updateQuantity('${p.n}', ${p.p}, -1)">-</button>
-                            <span class="qty-val" id="qty-${p.n}">${currentCart[p.n]?.q || 0}</span>
-                            <button class="math-btn" onclick="updateQuantity('${p.n}', ${p.p}, 1)">+</button>
+                        <div class="p-ctrl">
+                            <button class="math-btn" onclick="updateQty('${i.n}', ${i.p}, -1)">-</button>
+                            <span class="qty" id="q-${i.n}">${cart[i.n]?.qty || 0}</span>
+                            <button class="math-btn" onclick="updateQty('${i.n}', ${i.p}, 1)">+</button>
                         </div>
                     </div>
-                    <textarea class="p-note" id="note-${p.n}" placeholder="اكتب ملاحظاتك هنا (مثلاً: بدون توابل)..." style="display:${(currentCart[p.n]?.q > 0) ? 'block' : 'none'}">${currentCart[p.n]?.note || ''}</textarea>
+                    <textarea class="p-note" id="note-${i.n}" placeholder="أضف ملاحظاتك (بدون بصل مثلاً)..." style="display:${cart[i.n]?.qty > 0 ? 'block' : 'none'}"></textarea>
                 </div>
             `).join('');
-            
-            document.getElementById('menu-panel').classList.add('active');
+            document.getElementById('menu-sheet').classList.add('active');
         }
 
-        function hideShop() { 
-            document.getElementById('menu-panel').classList.remove('active'); 
+        function closeShop() { document.getElementById('menu-sheet').classList.remove('active'); }
+
+        function updateQty(name, price, change) {
+            if (!cart[name]) cart[name] = { price, qty: 0 };
+            cart[name].qty = Math.max(0, cart[name].qty + change);
+            document.getElementById(`q-${name}`).innerText = cart[name].qty;
+            document.getElementById(`note-${name}`).style.display = cart[name].qty > 0 ? 'block' : 'none';
+            
+            let total = 0;
+            for (let k in cart) total += cart[k].price * cart[k].qty;
+            document.getElementById('total-val').innerText = total.toLocaleString() + " د.ع";
+            document.getElementById('cart-footer').style.display = total > 0 ? 'flex' : 'none';
         }
 
-        function updateQuantity(name, price, change) {
-            if (!currentCart[name]) currentCart[name] = { p: price, q: 0, note: '' };
-            
-            currentCart[name].q = Math.max(0, currentCart[name].q + change);
-            
-            // UI Güncelleme
-            document.getElementById(`qty-${name}`).innerText = currentCart[name].q;
-            document.getElementById(`note-${name}`).style.display = (currentCart[name].q > 0) ? 'block' : 'none';
-            
-            updateTotal();
-        }
+        function sendOrder() {
+            const addr = document.getElementById('user-addr').value;
+            if (!addr) { alert("Basha! العنوان مطلوب."); return; }
 
-        function updateTotal() {
-            let grandTotal = 0;
-            for (let key in currentCart) {
-                grandTotal += currentCart[key].p * currentCart[key].q;
-            }
+            let items = Object.entries(cart).filter(x => x[1].qty > 0).map(x => {
+                const note = document.getElementById(`note-${x[0]}`).value;
+                return `${x[0]} (x${x[1].qty}) ${note ? '[Müşteri Notu: ' + note + ']' : ''}`;
+            }).join(" | ");
 
-            const cartBar = document.getElementById('main-cart-bar');
-            const warnBar = document.getElementById('order-warning');
-            
-            document.getElementById('final-total').innerText = grandTotal.toLocaleString() + " د.ع";
-            cartBar.style.display = (grandTotal > 0) ? 'flex' : 'none';
-
-            // Limit Kontrolü
-            if (grandTotal > 0 && grandTotal < MIN_LIMIT) {
-                warnBar.style.display = 'block';
-                document.getElementById('remain-amt').innerText = (MIN_LIMIT - grandTotal).toLocaleString();
-                cartBar.style.opacity = "0.5";
-                cartBar.style.pointerEvents = "none";
-            } else {
-                warnBar.style.display = 'none';
-                cartBar.style.opacity = "1";
-                cartBar.style.pointerEvents = "auto";
-            }
-        }
-
-        function confirmOrder() {
-            const addr = document.getElementById('delivery-address').value;
-            if (!addr) {
-                alert("Basha! يرجى إدخال عنوانك أولاً لتتمكن من الطلب.");
-                return;
-            }
-
-            // Sipariş Paketini Hazırla
-            let finalItems = Object.entries(currentCart)
-                .filter(entry => entry[1].q > 0)
-                .map(entry => {
-                    const noteText = document.getElementById(`note-${entry[0]}`).value;
-                    return `${entry[0]} (العدد: ${entry[1].q}) ${noteText ? '[ملاحظة: '+noteText+']' : ''}`;
-                }).join(" | ");
-
-            const orderData = {
-                shop: currentShopName,
-                order_details: finalItems,
-                customer_address: addr,
-                total_payment: document.getElementById('final-total').innerText,
-                order_status: "Sipariş Alındı (جديد)",
-                timestamp: new Date().toLocaleString('ar-IQ')
-            };
-
-            // Firebase'e Gönder
-            db.ref('mishwar_orders').push(orderData).then(() => {
-                alert("تم إرسال طلبك بنجama بنجاح! 🚀🔥 سنصلك قريباً.");
-                location.reload(); // Sayfayı sıfırla
+            db.ref('mishwar_orders').push({
+                shop: activeShop,
+                items: items,
+                address: addr,
+                total: document.getElementById('total-val').innerText,
+                status: "جديد",
+                time: new Date().toLocaleString('ar-IQ')
+            }).then(() => {
+                alert("تم إرسال طلبك بنجاح! 🚀🔥");
+                location.reload();
             });
         }
     </script>
