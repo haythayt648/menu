@@ -4,27 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mishwar Express | مشوار إكسبريس</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         body { background: #f8f9fa; font-family: sans-serif; margin: 0; padding-bottom: 70px; color: #333; }
         .header { background: #ff6b00; color: white; padding: 20px 15px; text-align: center; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .header h1 { margin: 0; font-size: 1.8em; }
-        
-        /* RESTORANLAR EKRANI */
         .section-title { padding: 10px 20px; font-size: 1.2em; font-weight: bold; color: #ff6b00; }
         .restaurant-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
         .rest-card { background: white; border-radius: 18px; padding: 15px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .rest-icon { font-size: 2.5em; display: block; margin-bottom: 10px; }
-        .rest-name { font-weight: bold; color: #222; }
-
-        /* MENÜ EKRANI (BAŞLANGIÇTA GİZLİ) */
+        .rest-name { font-weight: bold; }
         #menu-screen { display: none; padding: 15px; background: white; min-height: 100vh; position: fixed; top: 0; width: 100%; z-index: 1000; overflow-y: auto; box-sizing: border-box; }
         .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-        .add-btn { background: #ff6b00; color: white; border: none; padding: 5px 15px; border-radius: 8px; font-weight: bold; }
-        .back-btn { background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; display: inline-block; text-decoration: none; }
-
-        /* GİRİŞ MODALI */
+        .order-btn { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 20px; font-size: 1.1em; }
+        .back-btn { background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; display: inline-block; text-decoration: none; border: none; }
         #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ff6b00; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .login-box input { width: 80%; padding: 15px; margin: 10px 0; border-radius: 12px; border: none; text-align: center; }
+        .login-box input { width: 80%; padding: 15px; margin: 10px 0; border-radius: 12px; border: none; text-align: center; font-size: 1em; }
         .login-btn { width: 80%; padding: 15px; background: #222; color: white; border: none; border-radius: 12px; font-weight: bold; }
     </style>
 </head>
@@ -32,9 +28,10 @@
 
     <div id="login-modal">
         <h1>مشوار</h1>
+        <p>يرجى إدخال معلوماتك للطلب</p>
         <input type="text" id="user-name" placeholder="الاسم (Adınız)">
         <input type="tel" id="user-phone" placeholder="رقم الهاتف (Telefon)">
-        <button class="login-btn" onclick="startMishwar()">ابدأ مشوارك (Başlat)</button>
+        <button class="login-btn" onclick="startMishwar()">دخول (Giriş)</button>
     </div>
 
     <div id="main-screen">
@@ -47,12 +44,6 @@
             <div class="rest-card" onclick="showMenu('بركة كباب')">
                 <span class="rest-icon">🍢</span><span class="rest-name">بركة كباب</span>
             </div>
-            <div class="rest-card" onclick="showMenu('بيتزا هوم')">
-                <span class="rest-icon">🍕</span><span class="rest-name">بيتزا هوم</span>
-            </div>
-            <div class="rest-card" onclick="showMenu('شاورما مشوار')">
-                <span class="rest-icon">🌯</span><span class="rest-name">شاورما مشوار</span>
-            </div>
         </div>
     </div>
 
@@ -60,45 +51,45 @@
         <button class="back-btn" onclick="closeMenu()">← رجوع (Geri)</button>
         <h2 id="menu-title"></h2>
         <div id="items-list"></div>
+        <button class="order-btn" id="final-order-btn" style="display:none;" onclick="placeOrder()">ارسال الطلب (Siparişi Tamamla)</button>
     </div>
 
     <script>
+        // Senin Firebase Bilgilerin
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtU8ALJ5N3VBxbeGPpNk-790fA4MBP8nk",
+            authDomain: "nabda-coffee.firebaseapp.com",
+            databaseURL: "https://nabda-coffee-default-rtdb.firebaseio.com",
+            projectId: "nabda-coffee",
+            storageBucket: "nabda-coffee.firebasestorage.app",
+            messagingSenderId: "561770469999",
+            appId: "1:561770469999:web:b47703ce349e0338438b9a"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let selectedItem = "";
+        let currentRest = "";
+
         const menus = {
-            'Nabdda Coffee': [
-                {n: 'قهوة تركية', p: '2500'},
-                {n: 'كابتشينو', p: '3500'},
-                {n: 'كيك شوكولاتة', p: '4000'}
-            ],
-            'بركة كباب': [
-                {n: 'نفر كباب', p: '12000'},
-                {n: 'تكة دجاج', p: '10000'},
-                {n: 'ماعون مشكل', p: '15000'}
-            ],
-            'بيتزا هوم': [
-                {n: 'بيتزا مارغريتا', p: '8000'},
-                {n: 'بيتزا لحم', p: '10000'},
-                {n: 'بيتزا خضار', p: '7000'}
-            ],
-            'شاورما مشوار': [
-                {n: 'لفة شاورما لحم', p: '3000'},
-                {n: 'لفة شاورما دجاج', p: '2500'},
-                {n: 'وجبة عائلية', p: '15000'}
-            ]
+            'Nabdda Coffee': [{n: 'قهوة تركية', p: '2500'}, {n: 'كابتشينو', p: '3500'}],
+            'بركة كباب': [{n: 'نفر كباب', p: '12000'}, {n: 'تكة دجاج', p: '10000'}]
         };
 
         function startMishwar() {
             const name = document.getElementById('user-name').value;
-            if(name) {
-                localStorage.setItem('mishwar_user', name);
+            const phone = document.getElementById('user-phone').value;
+            if(name && phone) {
+                localStorage.setItem('m_user', name);
+                localStorage.setItem('m_phone', phone);
                 document.getElementById('login-modal').style.display = 'none';
             }
         }
 
-        if(localStorage.getItem('mishwar_user')) {
-            document.getElementById('login-modal').style.display = 'none';
-        }
+        if(localStorage.getItem('m_user')) document.getElementById('login-modal').style.display = 'none';
 
         function showMenu(name) {
+            currentRest = name;
             document.getElementById('menu-title').innerText = name;
             const list = document.getElementById('items-list');
             list.innerHTML = '';
@@ -106,15 +97,36 @@
                 list.innerHTML += `
                     <div class="menu-item">
                         <span>${item.n}<br><small>${item.p} IQD</small></span>
-                        <button class="add-btn" onclick="alert('Basha, yakında sipariş verebileceksin!')">أضف (+)</button>
+                        <button onclick="selectItem('${item.n}', '${item.p}')" style="background:#ff6b00; color:white; border:none; padding:5px 10px; border-radius:5px;">اختيار</button>
                     </div>`;
             });
             document.getElementById('menu-screen').style.display = 'block';
         }
 
-        function closeMenu() {
-            document.getElementById('menu-screen').style.display = 'none';
+        function selectItem(name, price) {
+            selectedItem = name + " (" + price + " IQD)";
+            document.getElementById('final-order-btn').style.display = 'block';
+            alert("تم اختيار: " + name);
         }
+
+        function placeOrder() {
+            const orderData = {
+                customer: localStorage.getItem('m_user'),
+                phone: localStorage.getItem('m_phone'),
+                restaurant: currentRest,
+                item: selectedItem,
+                status: "waiting", // Beklemede
+                time: new Date().toLocaleTimeString()
+            };
+
+            // Nabdda'dan AYRI "mishwar_orders" altına kaydeder
+            database.ref('mishwar_orders').push(orderData).then(() => {
+                alert("تم ارسال طلبك بنجاح! انتظر الكابتن.");
+                closeMenu();
+            });
+        }
+
+        function closeMenu() { document.getElementById('menu-screen').style.display = 'none'; }
     </script>
 </body>
 </html>
